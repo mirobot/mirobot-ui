@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Mirobot Control</title>
+  <script type="text/javascript" src="js/jquery.custom.min.js"></script>
+  <script type="text/javascript" src="js/jquery-sortable.js"></script>
+  <script type="text/javascript" src="js/mirobot.js"></script>
+  <script type="text/javascript" src="js/turtle.js"></script>
+  <script type="text/javascript" src="js/builder.js"></script>
+  <style>
+    body {
+      background-color: #fff;
+      font-family: sans-serif;
+    }
+    #configure{ display:none}
+    #menu li{
+      display:inline-block;
+      list-style-type:none;
+      border:1px solid #AAA;
+      padding:10px;
+      background-color: #EEE;
+    }
+    #menu li a{
+      text-decoration:none;
+      color:#333;
+    }
+    #menu li.selected{
+      background-color:#FFF;
+    }
+    .editor ol{
+      list-style-type:none;
+      padding:0;
+      margin:0;
+    }
+    .editor .library{
+      width:300px;
+      height:600px;
+      background:#EEE;
+      border:1px solid #BBB;
+      display:inline-block;
+      vertical-align:top;
+      padding:10px;
+    }
+    .editor .program{
+      border:1px solid #BBB;
+      display:inline-block;
+      width:600px;
+      height:600px;
+      vertical-align:top;
+      padding:10px;
+    }
+    .editor .function{
+      background:#FFF;
+      border:1px solid #aaa;
+      padding:10px;
+      min-height:1.5em;
+    }
+    .editor .program .function.running{
+      background:#F00;
+    }
+    .editor .library .function{
+      -webkit-box-shadow: 12px 12px 12px -5px rgba(0,0,0,0.5);
+      -moz-box-shadow: 12px 12px 12px -5px rgba(0,0,0,0.5);
+      box-shadow: 12px 12px 12px -5px rgba(0,0,0,0.5);
+      margin:0 0 10px;
+    }
+    .editor .fn-repeat ol{
+      min-height:1.5em;
+      border:1px solid #aaa;
+    }
+    .editor .dragged {
+      position: absolute;
+      opacity: 0.5;
+      z-index: 2000;
+    }
+    .editor .placeholder {
+      position: relative;
+      border:1px dashed #AAA;
+      display:block;
+      padding:10px;
+      min-height:1.5em;
+    }
+    .editor .run{
+      display:block;
+    }
+    body.dragging, body.dragging * {
+      cursor: move !important;
+    }
+  </style>
+</head>
+<body>
+  <div id="code"></div>
+  
+  <script>
+    var builder = new Builder($('#code'));
+    var mirobot = new Mirobot('ws://localhost:8080/websocket');
+  </script>
+
+</body>
+</html>
