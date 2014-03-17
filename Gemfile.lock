@@ -1,8 +1,13 @@
 GEM
   remote: https://rubygems.org/
   specs:
+    bindata (2.0.0)
+    cssminify (1.0.2)
     execjs (2.0.2)
     json (1.8.1)
+    mini_portile (0.5.2)
+    nokogiri (1.6.1)
+      mini_portile (~> 0.5.0)
     rake (10.1.1)
     uglifier (2.5.0)
       execjs (>= 0.3.0)
@@ -12,5 +17,8 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  bindata
+  cssminify
+  nokogiri
   rake
   uglifier
