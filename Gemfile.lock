@@ -3,12 +3,23 @@ GEM
   specs:
     bindata (2.0.0)
     cssminify (1.0.2)
+    daemons (1.1.9)
+    em-websocket (0.5.0)
+      eventmachine (>= 0.12.9)
+      http_parser.rb (~> 0.5.3)
+    eventmachine (1.0.3)
     execjs (2.0.2)
+    http_parser.rb (0.5.3)
     json (1.8.1)
     mini_portile (0.5.2)
     nokogiri (1.6.1)
       mini_portile (~> 0.5.0)
+    rack (1.5.2)
     rake (10.1.1)
+    thin (1.6.2)
+      daemons (>= 1.0.9)
+      eventmachine (>= 1.0.0)
+      rack (>= 1.0.0)
     uglifier (2.5.0)
       execjs (>= 0.3.0)
       json (>= 1.8.0)
@@ -19,6 +30,10 @@ PLATFORMS
 DEPENDENCIES
   bindata
   cssminify
+  em-websocket
+  eventmachine
   nokogiri
+  rack
   rake
+  thin
   uglifier

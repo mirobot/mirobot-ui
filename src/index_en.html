@@ -91,11 +91,9 @@
 </head>
 <body>
   <div id="code"></div>
-  
   <script>
     var builder = new Builder($('#code'));
-    var mirobot = new Mirobot('ws://localhost:8080/websocket');
+    var mirobot = new Mirobot('ws://' + window.location.hostname + ':8899/websocket');
   </script>
-
 </body>
 </html>
