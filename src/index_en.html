@@ -93,6 +93,9 @@
     .editor .run{
       display:block;
     }
+    .editor ol.program li.function.active{
+      background-color:#0F0;
+    }
     body.dragging, body.dragging * {
       cursor: move !important;
     }
@@ -101,8 +104,8 @@
 <body>
   <div id="code"></div>
   <script>
-    var builder = new Builder($('#code'));
     var mirobot = new Mirobot('ws://' + window.location.hostname + ':8899/websocket');
+    var builder = new Builder($('#code'));
   </script>
 </body>
 </html>

@@ -1,18 +1,46 @@
 var Instance = function(fn, el){
   this.fn = fn;
   this.el = el;
-  this.root = false;
+  this.parent = false;
   this.children = []
 }
 
 Instance.prototype = {
-  run: function(){
-    if(this.fn !== null){
-      //
+  run: function(children){
+    var self = this;
+    if(self.fn){
+      // This is a function
+      self.fn.run(self, function(state){ self.updateState(state)});
     }else{
-      // This is the root function
-      
+      // This is the root container
+      for(var i in self.children){
+        self.children[i].run();
+      }
     }
+  },
+  updateState: function(state){
+    if(state === 'started'){
+      $(this.el).addClass('active');
+    }else if(state === 'complete'){
+      $(this.el).removeClass('active');
+    }
+    if(this.parent){
+      this.parent.updateState(state);
+    }
+  },
+  addChild: function(child){
+    child.parent = this;
+    this.children.push(child);
+  },
+  args: function(){
+    var self = this;
+    var args ={}
+    $.each(this.fn.content, function(i, item){
+      if(typeof item === 'object'){
+        args[item.name] = $(self.el).find('[name='+ item.name + ']')[0].value;
+      }
+    });
+    return args;
   }
 }
 
@@ -99,7 +127,7 @@ Builder.prototype = {
           fn.append('<span> ' + f.content[i] + ' </span>');
         }else if(typeof(f.content[i]) === 'object'){
           if(f.content[i].input === 'number'){
-            fn.append('<input type="text" size="4" value="' + f.content[i].default + '" />');
+            fn.append('<input type="text" size="4" name="' + f.content[i].name + '" value="' + f.content[i].default + '" />');
           }else if(f.content[i].input === 'option'){
             var select = $('<select name="'+ f.content[i].name +'"/> ');
             select.on('change', function(e){
@@ -133,7 +161,6 @@ Builder.prototype = {
   },
   run: function(){
     this.prog = new Instance(null, null);
-    this.prog.root = true;
     this.generate(this.el.find('ol.program'), this.prog);
     this.prog.run()
   },
@@ -142,7 +169,7 @@ Builder.prototype = {
     $(el).children('li').each(function(i, f){
       var fn = self.fns[$(f).data('fntype')];
       var inst = new Instance(fn, f);
-      parent.children.push(inst);
+      parent.addChild(inst);
       if(fn.type === 'parent'){
         self.generate($(f).children('ol'), inst);
       }
@@ -157,11 +184,12 @@ Builder.prototype = {
         {input:'number', name:'count', default:2},
         'times'
       ],
-      handler: function(node, cb){
-        
-      },
-      js: function(node){
-      
+      run: function(node, cb){
+        for(var i=0; i< node.args().count; i++){
+          for(var j=0; j< node.children.length; j++){
+            node.children[j].run();
+          }
+        }
       }
     },
     {
@@ -174,11 +202,8 @@ Builder.prototype = {
         {input:'number', name:'distance', default:100},
         'mm'
       ],
-      handler: function(node, cb){
-        
-      },
-      js: function(node){
-      
+      run: function(node, cb){
+        mirobot.move(node.args().direction, node.args().distance, cb);
       }
     },
     {
@@ -191,33 +216,24 @@ Builder.prototype = {
         {input:'number', name:'angle', default:90},
         'degrees'
       ],
-      handler: function(node, cb){
-        
-      },
-      js: function(node){
-      
+      run: function(node, cb){
+        mirobot.turn(node.args().direction, node.args().angle, cb);
       }
     },
     {
       name:'penup',
       type:'child',
       content:['Pen up'],
-      handler: function(node, cb){
-        
-      },
-      js: function(node){
-      
+      run: function(node, cb){
+        mirobot.penup(cb);
       }
     },
     {
       name:'pendown',
       type:'child',
       content:['Pen down'],
-      handler: function(node, cb){
-        
-      },
-      js: function(node){
-      
+      run: function(node, cb){
+        mirobot.pendown(cb);
       }
     }
   ]
