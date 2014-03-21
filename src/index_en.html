@@ -28,24 +28,33 @@
     #menu li.selected{
       background-color:#FFF;
     }
+    .editor{
+      display:block;
+      min-width:600px;
+    }
     .editor ol{
       list-style-type:none;
       padding:0;
       margin:0;
+    }
+    .editor .run {
+      position:relative;
+      top:-30px;
+      float:left;
     }
     .editor .library{
       width:300px;
       height:600px;
       background:#EEE;
       border:1px solid #BBB;
-      display:inline-block;
+      float:left;
       vertical-align:top;
       padding:10px;
     }
     .editor .program{
       border:1px solid #BBB;
-      display:inline-block;
-      width:600px;
+      overflow:hidden;
+      min-width:300px;
       height:600px;
       vertical-align:top;
       padding:10px;
