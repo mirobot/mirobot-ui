@@ -39,6 +39,7 @@ Builder.prototype = {
       nested: true,
       vertical: true,
       pullPlaceholder: false,
+      exclude: 'input,select',
 
       // set item relative to cursor position
       onDragStart: function (item, container, _super) {
@@ -68,8 +69,11 @@ Builder.prototype = {
     });
     this.library.sortable({
       group: 'main',
-      drop: false
+      drop: false,
+      exclude: 'input,select'
     });
+    
+    this.library.find('input[type=text]').on('click', function(){ jQuery(this).focus(); });
     
     this.el.append(this.library);
     this.el.append(this.program);
@@ -97,7 +101,17 @@ Builder.prototype = {
           if(f.content[i].input === 'number'){
             fn.append('<input type="text" size="4" value="' + f.content[i].default + '" />');
           }else if(f.content[i].input === 'option'){
-            var select = $('<select /> ');
+            var select = $('<select name="'+ f.content[i].name +'"/> ');
+            select.on('change', function(e){
+              var el = $(this);
+              el.find("option").each(function(){
+                if ($(this).text() == el.val()) {
+                    $(this).attr("selected",true);
+                } else {
+                    $(this).removeAttr("selected");
+                }
+              });
+            });
             for(var j in f.content[i].values){
               var opt = $('<option value="' + f.content[i].values[j] + '">' + f.content[i].values[j] + '</option>');
               if(f.content[i].default === f.content[i].values[j]){
