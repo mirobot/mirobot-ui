@@ -6,15 +6,33 @@ require 'bindata'
 
 task :default => [:build]
 
-ugly_options = {
+$ugly_options = {
   :comments => :none
 }
 
+$input_dir = 'src'
 $output_dir = 'out'
 $dist_dir = 'dist'
 
-task :build do
-  puts "Building mirobot html file"
+def squish_file(input)
+  return input if input.include?('/*<%') && input.include?('%>*/')
+  doc = Nokogiri::HTML(input)
+  # Compress all of the inline scripts
+  doc.xpath('//script').each do |s|   
+    s.content = Uglifier.new({:comments => :all}).compile(s.content) unless s['src']
+  end
+  # Remove whitespace from the html
+  doc.xpath('//text()').each do |node|
+    node.remove unless node.content=~/\S/
+  end
+  # Minify the CSS
+  doc.xpath('//style').each do |c|
+    c.content = CSSminify.compress(c.content)
+  end
+  doc.to_s
+end
+
+task :clean_output do
   if Dir.exists? $output_dir
     Dir.glob("#{$output_dir}/*").each do |f|
       File.delete(f)
@@ -22,10 +40,15 @@ task :build do
   else
     Dir.mkdir($output_dir)
   end
+end
+
+task :flatten do
+  puts "Building mirobot html file"
+  Rake::Task["clean_output"].execute
   # Combine all of the html and javascript into one file
   # Find all of the html files to compress
   Dir.glob('src/*.html').each do |f|
-    outfile = f.gsub('src', $output_dir)
+    outfile = f.gsub($input_dir, $output_dir)
     # Read the file
     file = File.read(f)
     # Parse it
@@ -38,7 +61,7 @@ task :build do
     end
     # Re-inser the scripts at the end of the document
     new_script = Nokogiri::XML::Node.new("script", doc)
-    new_script.content = Uglifier.new(ugly_options).compile(js.join("\n"))
+    new_script.content = Uglifier.new($ugly_options).compile(js.join("\n"))
     doc.css('body').first.children.last.add_next_sibling(new_script)
     # Remove whitespace from the html
     doc.xpath('//text()').each do |node|
@@ -62,26 +85,65 @@ task :build do
   end
 end
 
+task :dist do
+  Rake::Task["build"].execute
+  Rake::Task["create_bin"].execute
+end
+
+task :build do
+  puts "Building mirobot UI files"
+  Rake::Task["clean_output"].execute
+  Dir.glob('src/*').each do |f|
+    file = File.read(f)
+    outfile = f.gsub($input_dir, $output_dir)
+    if f =~ /.*\.html\z/
+      output = squish_file(file)
+    elsif f =~ /.*\.js\z/
+      output = Uglifier.new($ugly_options).compile(file)
+    elsif f =~ /.*\.css\z/
+      output = CSSminify.compress(file)
+    end
+    File.open(outfile, 'w') { |file|
+      file.write(output)
+    }
+  end
+end
+
 class FileHeader < BinData::Record
   int32le :next_file
   string  :file_name, :length => 32, :pad_byte => 0
   int32le :file_loc
   int32le :file_len
-  int32le :padding1, :value => 0
-  int32le :padding2, :value => 0
-  int32le :padding3, :value => 1
+  int32le :dyn_addr, :initial_value => 0
+  int32le :dyn_length, :initial_value => 0
+  int8le  :file_type
+  array   :reserved, :initial_length => 3 do
+    int8le :initial_value => 0
+  end
 end
 
-task :dist => :build do
+def file_type(name)
+  types = {'HTML' => 1, 'CSS' => 2, 'JS' => 3, 'JPG' => 4, 'PNG' => 5, 'GIF' => 6}
+  types[File.extname(name).gsub('.', '').upcase]
+end
+
+task :create_bin do
   puts "Generating bin file"
   outfile = "#{$dist_dir}/lpb_web.bin"
   headers = []
   file_contents = []
   files = Dir.glob("#{$output_dir}/*")
   files.each_with_index do |f, i|
-    file_contents << File.read(f).force_encoding('ASCII-8BIT')
-    headers << FileHeader.new(:next_file => (i+1) * 56, :file_name => f.gsub($output_dir, ''), :file_len => file_contents.last.length)
-    headers.last.file_loc = (56 * files.length) + file_contents.join.length - file_contents.last.length
+    type = file_type(f)
+    if type
+      file_contents << File.read(f).force_encoding('ASCII-8BIT')
+      headers << FileHeader.new(:next_file => (i+1) * 56, :file_name => f.gsub($output_dir, ''), :file_len => file_contents.last.length, :file_type => type)
+      headers.last.file_loc = (56 * files.length) + file_contents.join.length - file_contents.last.length
+      if pos = file_contents.last =~ /(\/\*<%.*%>\*\/)/
+        headers.last.dyn_addr = pos
+        headers.last.dyn_length = $1.length
+      end
+    end
   end
   headers.last.next_file = 0
   output = headers.map(&:to_binary_s).join + file_contents.join
@@ -100,5 +162,4 @@ task :dist => :build do
   File.open(outfile, 'w') { |file|
     file.write(output)
   }
-  
 end
