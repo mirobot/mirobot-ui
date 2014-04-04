@@ -1,6 +1,7 @@
-var Instance = function(fn, el){
+var Instance = function(fn, el, mirobot){
   this.fn = fn;
   this.el = el;
+  this.mirobot = mirobot;
   this.parent = false;
   this.children = []
 }
@@ -10,7 +11,7 @@ Instance.prototype = {
     var self = this;
     if(self.fn){
       // This is a function
-      self.fn.run(self, function(state){ self.updateState(state)});
+      self.fn.run(self, self.mirobot, function(state){ self.updateState(state)});
     }else{
       // This is the root container
       for(var i in self.children){
@@ -44,9 +45,10 @@ Instance.prototype = {
   }
 }
 
-var Builder = function(el){
+var Builder = function(el, mirobot){
   var self = this;
   this.el = el;
+  this.mirobot = mirobot;
   this.init();
   this.fns = {};
   $.each(this.functions, function(i, f){
@@ -168,7 +170,7 @@ Builder.prototype = {
     var self = this;
     $(el).children('li').each(function(i, f){
       var fn = self.fns[$(f).data('fntype')];
-      var inst = new Instance(fn, f);
+      var inst = new Instance(fn, f, self.mirobot);
       parent.addChild(inst);
       if(fn.type === 'parent'){
         self.generate($(f).children('ol'), inst);
@@ -184,7 +186,7 @@ Builder.prototype = {
         {input:'number', name:'count', default:2},
         'times'
       ],
-      run: function(node, cb){
+      run: function(node, mirobot, cb){
         for(var i=0; i< node.args().count; i++){
           for(var j=0; j< node.children.length; j++){
             node.children[j].run();
@@ -202,7 +204,7 @@ Builder.prototype = {
         {input:'number', name:'distance', default:100},
         'mm'
       ],
-      run: function(node, cb){
+      run: function(node, mirobot, cb){
         mirobot.move(node.args().direction, node.args().distance, cb);
       }
     },
@@ -216,7 +218,7 @@ Builder.prototype = {
         {input:'number', name:'angle', default:90},
         'degrees'
       ],
-      run: function(node, cb){
+      run: function(node, mirobot, cb){
         mirobot.turn(node.args().direction, node.args().angle, cb);
       }
     },
@@ -224,7 +226,7 @@ Builder.prototype = {
       name:'penup',
       type:'child',
       content:['Pen up'],
-      run: function(node, cb){
+      run: function(node, mirobot, cb){
         mirobot.penup(cb);
       }
     },
@@ -232,7 +234,7 @@ Builder.prototype = {
       name:'pendown',
       type:'child',
       content:['Pen down'],
-      run: function(node, cb){
+      run: function(node, mirobot, cb){
         mirobot.pendown(cb);
       }
     }

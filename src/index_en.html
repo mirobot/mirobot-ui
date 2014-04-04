@@ -108,49 +108,48 @@
         var _scripts = ['jquery-custom-min.js', 'jquery-sortable.js', 'mirobot.js', 'builder.js'];
         var x = 0;
         var loopArray = function(_scripts, scripts) {
-            // call itself
-            loadScript(_scripts[x], scripts[x], function(){
-                // set x to next item
-                x++;
-                // any more items in array?
-                if(x < _scripts.length) {
-                    loopArray(_scripts, scripts);   
-                }else{
-                  done();
-                }
-            }); 
+          // call itself
+          loadScript(_scripts[x], scripts[x], function(){
+            // set x to next item
+            x++;
+            // any more items in array?
+            if(x < _scripts.length) {
+              loopArray(_scripts, scripts);   
+            }else{
+              done();
+            }
+          }); 
         }
         loopArray(_scripts, scripts);      
     }
 
     // load script function with callback to handle synchronicity 
     function loadScript( src, script, callback ){
-        var tried_remote = has_remote_conn;
-        script = document.createElement('script');
-        script.onerror = function() { 
-            // handling error when loading script
-            if(tried_remote){
-              console.log('Could not load script from remote: ' + src);
-              has_remote_conn = false;
-              loadScript(src, script, callback)
-            }
+      var tried_remote = has_remote_conn;
+      script = document.createElement('script');
+      script.onerror = function() { 
+        // handling error when loading script
+        if(tried_remote){
+          console.log('Could not load script from remote: ' + src);
+          has_remote_conn = false;
+          loadScript(src, script, callback)
         }
-        script.onload = function(){
-            console.log(src + ' loaded ')
-            callback();
-        }
-        if(has_remote_conn){
-          script.src = 'http://mirobot.io/assets/mirobot_js/' + src;
-        }else{
-          script.src = src;
-        }
-        document.getElementsByTagName('head')[0].appendChild(script);
+      }
+      script.onload = function(){
+        console.log(src + ' loaded ')
+        callback();
+      }
+      if(has_remote_conn){
+        script.src = 'http://mirobot.io/assets/mirobot_jsx/' + src;
+      }else{
+        script.src = src;
+      }
+      document.getElementsByTagName('head')[0].appendChild(script);
     }  
   
-    var mirobot, builder;
     var setup = function(){
-      mirobot = new Mirobot('ws://' + window.location.hostname + ':8899/websocket');
-      builder = new Builder($('#code'));
+      var mirobot = new Mirobot('ws://' + window.location.hostname + ':8899/websocket');
+      var builder = new Builder($('#code'), mirobot);
     }
     window.onload = function(){
       LoadScripts(function(){
