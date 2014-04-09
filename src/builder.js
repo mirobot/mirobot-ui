@@ -109,11 +109,30 @@ Builder.prototype = {
     this.el.append(this.program);
     this.setHeights();
     $(window).on('resize', function(){ self.setHeights() });
+    var controls= $('<div class="controls"></div>');
     var runner = $('<button class="run">Run</button>');
     runner.on('click', function(e){self.run(e)});
-    this.el.append(runner);
+    this.conn = $('<button class="connected" disabled>Connecting</button>');
+    this.mirobot.addConnectionListener(function(state){ self.connHandler(state) });
+    this.conn.on('click', function(e){self.reconnect(e)});
+    controls.append(runner);
+    controls.append(this.conn);
+    this.el.append(controls);
     
     this.addFunctions();
+  },
+  connHandler: function(state){
+    if(state){
+      $(this.conn).text('Connected');
+      $(this.conn).prop("disabled", true);
+    }else{
+      $(this.conn).text('Not Connected - reconnect');
+      $(this.conn).prop("disabled", false);
+    }
+  },
+  reconnect: function(){
+    this.mirobot.connect();
+    console.log('reconnect');
   },
   setHeights: function(){
     var newHeight = $(window).height() - 2 * (1 + 10 + 8);

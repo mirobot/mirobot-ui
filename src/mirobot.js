@@ -1,12 +1,42 @@
 var Mirobot = function(url){
-  var self = this;
-  this.ws = new WebSocket(url);
-  this.ws.onmessage = function(ws_msg){self.handle_ws(ws_msg)};
+  this.url = url;
+  this.connect();
   this.cbs = {};
+  this.connListeners = [];
 }
 
 Mirobot.prototype = {
-  
+
+  connected: false,
+
+  connect: function(){
+    var self = this;
+    this.ws = new WebSocket(this.url);
+    this.ws.onmessage = function(ws_msg){self.handle_ws(ws_msg)};
+    this.ws.onopen = function(){ self.setConnectedState(true)}
+    this.ws.onerror = function(err){self.handleError(err)}
+    this.ws.onclose = function(err){self.handleError(err)}
+  },
+
+  setConnectedState: function(state){
+    this.connected = state;
+    for(i in this.connListeners){
+      this.connListeners[i](state);
+    }
+  },
+
+  addConnectionListener: function(listener){
+    this.connListeners.push(listener);
+  },
+
+  handleError: function(err){
+    if(err instanceof CloseEvent){
+      this.setConnectedState(false);
+    }else{
+      console.log(err);
+    }
+  },
+
   move: function(direction, distance, cb){
     this.send({cmd: direction, arg: distance}, cb);
   },
