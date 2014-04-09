@@ -109,13 +109,18 @@ Builder.prototype = {
     
     this.el.append(left);
     this.el.append(right);
-    this.runner = $('<button class="run">&#9654; Run Program</button>');
-    this.runner.on('click', function(e){self.run(e)});
+    this.runner = $('<button class="run">&#9654; Run</button>');
+    this.stop = $('<button class="stop">&#9724; Stop</button>');
+    this.clear = $('<button class="clear">&#10006; Clear</button>');
+    this.runner.on('click', function(e){self.runProgram(e)});
+    this.stop.on('click', function(e){self.stopProgram(e)});
+    this.clear.on('click', function(e){self.clearProgram(e)});
     this.conn = $('<span class="connState">Connecting</span>');
     this.mirobot.addConnectionListener(function(state){ self.connHandler(state) });
-    this.conn.on('click', function(e){self.reconnect(e)});
     right.append(this.conn);
     right.append(this.runner);
+    right.append(this.stop);
+    right.append(this.clear);
     
     this.addFunctions();
   },
@@ -127,9 +132,6 @@ Builder.prototype = {
       $(this.conn).html('&#10007; Reconnecting');
       $(this.conn).removeClass('connected');
     }
-  },
-  reconnect: function(){
-    this.mirobot.connect();
   },
   addFunctions: function(){
     var self = this;
@@ -172,10 +174,17 @@ Builder.prototype = {
       self.el.find('.functionList').append(fn);
     });
   },
-  run: function(){
-    this.prog = new Instance(null, null);
+  runProgram: function(){
+    this.prog = new Instance(null, null, null);
     this.generate(this.el.find('ol.program'), this.prog);
     this.prog.run()
+  },
+  stopProgram: function(){
+    this.mirobot.stop();
+  },
+  clearProgram: function(){
+    this.stopProgram();
+    this.el.find('ol.program li').remove();
   },
   generate: function(el, parent){
     var self = this;

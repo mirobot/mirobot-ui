@@ -52,19 +52,48 @@
     .editor .right{
       border:1px solid #888;
       margin-left:310px;
+      max-width:600px;
     }
-    .editor .run{
-      background-color:#f25803;
+    .editor button{
       color:#FFF;
       font-size:1.5em;
       padding:5px;
+      height:40px;
+      vertical-align:top;
       border:none;
-      width:100%;
+      width:33.33%;
       font-weight:bold;
       margin:0;
     }
+    .editor button:focus{
+      outline-width: 0;
+    }
+    .editor .run{
+      background-color:#33D121;
+    }
     .editor .run:hover{
-      background-color:#F44719;
+      background-color:#2CAD1D;
+    }
+    .editor .run:active{
+      background-color:#218216;
+    }
+    .editor .stop{
+      background-color:#888;
+    }
+    .editor .stop:hover{
+      background-color:#444;
+    }
+    .editor .stop:active{
+      background-color:#000;
+    }
+    .editor .clear{
+      background-color:#AAA;
+    }
+    .editor .clear:hover{
+      background-color:#777;
+    }
+    .editor .clear:active{
+      background-color:#444;
     }
     .editor .program{
       overflow:hidden;
