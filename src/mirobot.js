@@ -10,18 +10,34 @@ Mirobot.prototype = {
   connected: false,
 
   connect: function(){
-    var self = this;
-    this.ws = new WebSocket(this.url);
-    this.ws.onmessage = function(ws_msg){self.handle_ws(ws_msg)};
-    this.ws.onopen = function(){ self.setConnectedState(true)}
-    this.ws.onerror = function(err){self.handleError(err)}
-    this.ws.onclose = function(err){self.handleError(err)}
+    if(!this.connected){
+      var self = this;
+      this.ws = new WebSocket(this.url);
+      this.ws.onmessage = function(ws_msg){self.handle_ws(ws_msg)};
+      this.ws.onopen = function(){ self.setConnectedState(true)}
+      this.ws.onerror = function(err){self.handleError(err)}
+      this.ws.onclose = function(err){self.handleError(err)}
+    }
   },
 
   setConnectedState: function(state){
-    this.connected = state;
-    for(i in this.connListeners){
-      this.connListeners[i](state);
+    var self = this;
+    self.connected = state;
+    for(i in self.connListeners){
+      self.connListeners[i](state);
+    }
+    // Try to auto reconnect if disconnected
+    if(state){
+      if(self.reconnectTimer){
+        clearInterval(self.reconnectTimer);
+        self.reconnectTimer = undefined;
+      }
+    }else{
+      if(!self.reconnectTimer){
+        self.reconnectTimer = setInterval(function(){
+          self.connect();
+        }, 1000);
+      }
     }
   },
 
