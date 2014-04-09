@@ -152,7 +152,13 @@
     }  
   
     var setup = function(){
-      var mirobot = new Mirobot('ws://' + window.location.hostname + ':8899/websocket');
+      var host;
+      if(window.location.hash !== '' && window.location.hash.match(/#m=/)){
+        host = window.location.hash.replace('#m=', '')
+      }else{
+        host = window.location.hostname;
+      }
+      var mirobot = new Mirobot('ws://' + host + ':8899/websocket');
       var builder = new Builder($('#code'), mirobot);
     }
     window.onload = function(){
