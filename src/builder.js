@@ -62,8 +62,12 @@ Builder.prototype = {
     var self = this;
     var adjustment;
     this.el.addClass('editor');
-    this.library = $('<ol class="library"></ol>');
+    var left = $('<div class="left container"><h2>Toolbox</h2></div>');
+    this.functionList = $('<ol class="functionList"></ol>');
+    left.append(this.functionList);
+    var right = $('<div class="right container"><h2>Program</h2></div>');
     this.program = $('<ol class="program"></ol>');
+    right.append(this.program);
     this.program.sortable({
       group: 'main',
       nested: true,
@@ -97,47 +101,35 @@ Builder.prototype = {
         item.remove();
       }
     });
-    this.library.sortable({
+    this.functionList.sortable({
       group: 'main',
       drop: false,
       exclude: 'input,select'
     });
     
-    this.library.find('input[type=text]').on('click', function(){ jQuery(this).focus(); });
-    
-    this.el.append(this.library);
-    this.el.append(this.program);
-    this.setHeights();
-    $(window).on('resize', function(){ self.setHeights() });
-    var controls= $('<div class="controls"></div>');
-    var runner = $('<button class="run">Run</button>');
-    runner.on('click', function(e){self.run(e)});
-    this.conn = $('<button class="connected" disabled>Connecting</button>');
+    this.el.append(left);
+    this.el.append(right);
+    this.runner = $('<button class="run">&#9654; Run Program</button>');
+    this.runner.on('click', function(e){self.run(e)});
+    this.conn = $('<span class="connState">Connecting</span>');
     this.mirobot.addConnectionListener(function(state){ self.connHandler(state) });
     this.conn.on('click', function(e){self.reconnect(e)});
-    controls.append(runner);
-    controls.append(this.conn);
-    this.el.append(controls);
+    right.append(this.conn);
+    right.append(this.runner);
     
     this.addFunctions();
   },
   connHandler: function(state){
     if(state){
-      $(this.conn).text('Connected');
-      $(this.conn).prop("disabled", true);
+      $(this.conn).html('&#10003; Connected');
+      $(this.conn).addClass('connected');
     }else{
-      $(this.conn).text('Not Connected - reconnect');
-      $(this.conn).prop("disabled", false);
+      $(this.conn).html('&#10007; Reconnecting');
+      $(this.conn).removeClass('connected');
     }
   },
   reconnect: function(){
     this.mirobot.connect();
-    console.log('reconnect');
-  },
-  setHeights: function(){
-    var newHeight = $(window).height() - 2 * (1 + 10 + 8);
-    this.library.height(newHeight);
-    this.program.height(newHeight);
   },
   addFunctions: function(){
     var self = this;
@@ -177,7 +169,7 @@ Builder.prototype = {
         fn.append('<ol></ol>');
       }
 
-      self.el.find('.library').append(fn);
+      self.el.find('.functionList').append(fn);
     });
   },
   run: function(){
