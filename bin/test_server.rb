@@ -24,7 +24,11 @@ t1 = Thread.new do
         parsed = JSON.parse(msg)
         p parsed
         puts "Recieved message: #{msg}"
-        if $current_cmd.nil?
+        if parsed['cmd'] && ['ping', 'pause', 'resume', 'stop'].include?(parsed['cmd'])
+          response = {'status' => 'complete'}
+          response['id'] = parsed['id'] if parsed['id']
+          ws.send JSON.generate(response)
+        elsif $current_cmd.nil?
           if parsed['cmd'] && ['forward', 'back', 'right', 'left', 'penup', 'pendown', 'ping'].include?(parsed['cmd'])
             $current_cmd = parsed
             response = {'status' => 'accepted'}

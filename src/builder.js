@@ -51,6 +51,7 @@ var Builder = function(el, mirobot){
   this.mirobot = mirobot;
   this.init();
   this.fns = {};
+  this.paused = false;
   $.each(this.functions, function(i, f){
     self.fns[f.name] = f;
   });
@@ -110,27 +111,35 @@ Builder.prototype = {
     this.el.append(left);
     this.el.append(right);
     this.runner = $('<button class="run">&#9654; Run</button>');
+    this.pause = $('<button class="pause">&#10074;&#10074; Pause</button>');
+    this.pause.on('click', function(e){self.pauseProgram(e)});
+    this.pause.hide();
     this.stop = $('<button class="stop">&#9724; Stop</button>');
     this.clear = $('<button class="clear">&#10006; Clear</button>');
     this.runner.on('click', function(e){self.runProgram(e)});
     this.stop.on('click', function(e){self.stopProgram(e)});
     this.clear.on('click', function(e){self.clearProgram(e)});
     this.conn = $('<span class="connState">Connecting</span>');
-    this.mirobot.addConnectionListener(function(state){ self.connHandler(state) });
+    this.mirobot.addListener(function(state){ self.mirobotHandler(state) });
     right.append(this.conn);
     right.append(this.runner);
+    right.append(this.pause);
     right.append(this.stop);
     right.append(this.clear);
     
     this.addFunctions();
   },
-  connHandler: function(state){
-    if(state){
+  mirobotHandler: function(state){
+    console.log(state);
+    if(state === 'connected'){
       $(this.conn).html('&#10003; Connected');
       $(this.conn).addClass('connected');
-    }else{
+    }else if(state === 'disconnected'){
       $(this.conn).html('&#10007; Reconnecting');
       $(this.conn).removeClass('connected');
+    }else if(state === 'program_complete'){
+      this.runner.show();
+      this.pause.hide();
     }
   },
   addFunctions: function(){
@@ -175,12 +184,36 @@ Builder.prototype = {
     });
   },
   runProgram: function(){
-    this.prog = new Instance(null, null, null);
-    this.generate(this.el.find('ol.program'), this.prog);
-    this.prog.run()
+    if(this.paused){
+      this.mirobot.resume(function(){
+        console.log('resumed');
+      });
+    }else{
+      this.prog = new Instance(null, null, null);
+      this.generate(this.el.find('ol.program'), this.prog);
+      this.prog.run()
+    }
+    this.pause.show();
+    this.runner.hide();
+    this.paused = false;
+  },
+  pauseProgram: function(){
+    var self = this;
+    this.paused = true;
+    this.mirobot.pause(function(){
+      console.log('paused');
+      self.runner.show();
+      self.pause.hide();
+    });
   },
   stopProgram: function(){
-    this.mirobot.stop();
+    var self = this;
+    this.mirobot.stop(function(){
+      self.runner.show();
+      self.pause.hide();
+      self.paused = false;
+      console.log('stopped');
+    });
   },
   clearProgram: function(){
     this.stopProgram();
@@ -198,22 +231,6 @@ Builder.prototype = {
     });
   },
   functions:[
-    {
-      name:'repeat',
-      type:'parent',
-      content:[
-        'Repeat',
-        {input:'number', name:'count', default:2},
-        'times'
-      ],
-      run: function(node, mirobot, cb){
-        for(var i=0; i< node.args().count; i++){
-          for(var j=0; j< node.children.length; j++){
-            node.children[j].run();
-          }
-        }
-      }
-    },
     {
       name:'move',
       type:'child',
@@ -256,6 +273,22 @@ Builder.prototype = {
       content:['Pen down'],
       run: function(node, mirobot, cb){
         mirobot.pendown(cb);
+      }
+    },
+    {
+      name:'repeat',
+      type:'parent',
+      content:[
+        'Repeat',
+        {input:'number', name:'count', default:2},
+        'times'
+      ],
+      run: function(node, mirobot, cb){
+        for(var i=0; i< node.args().count; i++){
+          for(var j=0; j< node.children.length; j++){
+            node.children[j].run();
+          }
+        }
       }
     }
   ]

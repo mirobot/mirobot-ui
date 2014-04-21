@@ -2,7 +2,7 @@ var Mirobot = function(url){
   this.url = url;
   this.connect();
   this.cbs = {};
-  this.connListeners = [];
+  this.listeners = [];
 }
 
 Mirobot.prototype = {
@@ -23,9 +23,7 @@ Mirobot.prototype = {
   setConnectedState: function(state){
     var self = this;
     self.connected = state;
-    for(i in self.connListeners){
-      self.connListeners[i](state);
-    }
+    self.broadcast(state ? 'connected' : 'disconnected');
     // Try to auto reconnect if disconnected
     if(state){
       if(self.reconnectTimer){
@@ -40,9 +38,15 @@ Mirobot.prototype = {
       }
     }
   },
+  
+  broadcast: function(msg){
+    for(i in this.listeners){
+      this.listeners[i](msg);
+    }
+  },
 
-  addConnectionListener: function(listener){
-    this.connListeners.push(listener);
+  addListener: function(listener){
+    this.listeners.push(listener);
   },
 
   handleError: function(err){
@@ -73,20 +77,43 @@ Mirobot.prototype = {
     this.send({cmd: 'ping'}, cb);
   },
   
-  stop: function(){
-    for(var i in this.cbs){
-      this.cbs[i]('complete');
-    }
-    this.robot_state = 'idle';
-    this.msg_stack = [];
-    this.cbs = {}
+  stop: function(cb){
+    var self = this;
+    this.send({cmd:'stop'}, function(state, recursion){
+      if(state === 'complete' && !recursion){
+        for(var i in self.cbs){
+          self.cbs[i]('complete', true);
+        }
+        self.robot_state = 'idle';
+        self.msg_stack = [];
+        self.cbs = {};
+        if(cb){ cb(state); }
+      }
+    });
+  },
+  
+  pause: function(cb){
+    this.send({cmd:'pause'}, cb);
+  },
+  
+  resume: function(cb){
+    this.send({cmd:'resume'}, cb);
+  },
+  
+  ping: function(cb){
+    this.send({cmd:'ping'}, cb);
   },
 
   send: function(msg, cb){
     msg.id = Math.random().toString(36).substr(2, 10)
     this.cbs[msg.id] = cb;
     if(msg.arg){ msg.arg = msg.arg.toString(); }
-    this.push_msg(msg);
+    if(['stop', 'pause', 'resume', 'ping'].indexOf(msg.cmd) >= 0){
+      console.log(msg);
+      this.ws.send(JSON.stringify(msg));
+    }else{
+      this.push_msg(msg);
+    }
   },
   
   push_msg: function(msg){
@@ -117,13 +144,18 @@ Mirobot.prototype = {
           delete this.cbs[msg.id];
         }
         this.msg_stack.shift();
+        if(this.msg_stack.length === 0){
+          this.broadcast('program_complete');
+        }
         this.robot_state = 'idle';
         this.run_stack();
       }
     }else{
-      this.robot_state = 'idle';
-      this.run_stack();
-    }
+      if(this.cbs[msg.id]){
+        this.cbs[msg.id]('complete');
+        delete this.cbs[msg.id];
+      }
+    } 
   },
   
   robot_state: 'idle',
