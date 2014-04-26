@@ -67,6 +67,7 @@ Builder.prototype = {
     this.functionList = $('<ol class="functionList"></ol>');
     left.append(this.functionList);
     var right = $('<div class="right container"><h2>Program</h2></div>');
+    right.append($('<div class="function start"><svg class="bg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" width="350px" height="150px" viewBox="0 0 350 150" enable-background="new 0 0 320 125" xml:space="preserve"><filter id="dropshadow" height="130%"><feGaussianBlur in="SourceAlpha" stdDeviation="5"/><feOffset dx="6" dy="6" result="offsetblur"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter><polygon fill="#FFFFFF" stroke="#666" points="180,25 25,25 25,50 25,70 90,70 85,85 185,85 180,70 300,70 300,25"/></svg><div class="details">Start</div></div>'));
     this.program = $('<ol class="program"></ol>');
     right.append(this.program);
     this.program.sortable({
@@ -75,6 +76,7 @@ Builder.prototype = {
       vertical: true,
       pullPlaceholder: false,
       exclude: 'input,select',
+      placeholder: '<li class="function placeholder"><svg class="bg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" width="350px" height="150px" viewBox="0 0 350 150" enable-background="new 0 0 320 125" xml:space="preserve"><polygon fill="#FFFFFF" stroke="#666" stroke-dasharray="5,5" points="180,25 185,40 85,40 90,25 25,25 25,50 25,85 90,85 85,100 185,100 180,85 300,85 300,25"/></svg></div>',
 
       // set item relative to cursor position
       onDragStart: function (item, container, _super) {
@@ -136,13 +138,15 @@ Builder.prototype = {
   addFunctions: function(){
     var self = this;
     $.each(this.functions, function(i, f){
-      var fn = $('<li class="function fn-' + f.name + '" data-fntype="' + f.name + '" draggable="true"></li>');
+      var fn = $('<li class="function fn-' + f.name + '" data-fntype="' + f.name + '"><svg class="bg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" width="350px" height="150px" viewBox="0 0 350 150" enable-background="new 0 0 320 125" xml:space="preserve"><filter id="dropshadow" height="130%"><feGaussianBlur in="SourceAlpha" stdDeviation="5"/><feOffset dx="6" dy="6" result="offsetblur"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter><polygon fill="#FFFFFF" stroke="#666" points="180,25 185,40 85,40 90,25 25,25 25,50 25,85 90,85 85,100 185,100 180,85 300,85 300,25"/></svg></li>');
+      var details = $('<div class="details"></div>')
+      fn.append(details);
       for(var i in f.content){
         if(typeof(f.content[i]) === 'string'){
-          fn.append('<span> ' + f.content[i] + ' </span>');
+          details.append('<span> ' + f.content[i] + ' </span>');
         }else if(typeof(f.content[i]) === 'object'){
           if(f.content[i].input === 'number'){
-            fn.append('<input type="text" size="4" name="' + f.content[i].name + '" value="' + f.content[i].default + '" />');
+            details.append('<input type="text" size="4" name="' + f.content[i].name + '" value="' + f.content[i].default + '" />');
           }else if(f.content[i].input === 'option'){
             var select = $('<select name="'+ f.content[i].name +'"/> ');
             select.on('change', function(e){
@@ -162,13 +166,13 @@ Builder.prototype = {
               }
               select.append(opt);
             }
-            fn.append(select);
+            details.append(select);
           }
         }
       }
       
       if(f.type === 'parent'){
-        fn.append('<ol></ol>');
+        details.append('<ol></ol>');
       }
 
       self.el.find('.functionList').append(fn);

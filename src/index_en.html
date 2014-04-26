@@ -103,19 +103,39 @@
       padding:10px;
     }
     .editor .function{
-      background:#FFF;
-      border:1px solid #888;
-      padding:10px;
-      min-height:1.5em;
+      position:relative;
+    }
+    .editor .function .bg{
+      margin-left:-25px;
+      margin-top:-25px;
+    }
+    .editor .function .details{
+      position:absolute;
+      top:25px;
+      left:10px;
     }
     .editor .program .function.running{
       background:#F00;
     }
     .editor .functionList .function{
-      -webkit-box-shadow: 12px 12px 12px -5px rgba(0,0,0,0.5);
-      -moz-box-shadow: 12px 12px 12px -5px rgba(0,0,0,0.5);
-      box-shadow: 12px 12px 12px -5px rgba(0,0,0,0.5);
-      margin:0 0 10px;
+      margin:0 0 -35px;
+    }
+    .editor .program .function{
+      margin:0 0 -70px;
+    }
+    .editor .start{
+      margin:10px 0 -95px 10px;
+    }
+    .editor .start .details{
+      position:absolute;
+      top:15px;
+      left:10px;
+    }
+    .editor .program .function svg polygon{
+      filter:none;
+    }
+    .editor .functionList .function svg polygon{
+      filter:url(#dropshadow);
     }
     .editor .fn-repeat ol{
       min-height:1.5em;
@@ -126,15 +146,11 @@
       opacity: 0.5;
       z-index: 2000;
     }
-    .editor .placeholder {
-      position: relative;
-      border:1px dashed #888;
-      display:block;
-      padding:10px;
-      min-height:1.5em;
+    .editor .placeholder{
+      z-index:1000;
     }
-    .editor ol.program li.function.active{
-      background-color:#0F0;
+    .editor ol.program li.function.active .bg polygon{
+      fill:#0F0;
     }
     body.dragging, body.dragging * {
       cursor: move !important;
