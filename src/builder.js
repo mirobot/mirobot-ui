@@ -76,7 +76,7 @@ Builder.prototype = {
       vertical: true,
       pullPlaceholder: false,
       exclude: 'input,select',
-      placeholder: '<li class="function placeholder"><svg class="bg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" width="350px" height="150px" viewBox="0 0 350 150" enable-background="new 0 0 320 125" xml:space="preserve"><polygon fill="#FFFFFF" stroke="#666" stroke-dasharray="5,5" points="180,25 185,40 85,40 90,25 25,25 25,50 25,85 90,85 85,100 185,100 180,85 300,85 300,25"/></svg></div>',
+      placeholder: '<li class="function placeholder">' + self.svgData('child', undefined, true) + '</li>',
 
       // set item relative to cursor position
       onDragStart: function (item, container, _super) {
@@ -135,10 +135,73 @@ Builder.prototype = {
       this.pause.hide();
     }
   },
+  svgData: function(type, children, placeholder){
+    var pegHeight = 15;
+    var pegWidth = 90;
+    var pegInset = 5;
+    var pegOffset = 65;
+    var x_offset = 25;
+    var y_offset = 25;
+    var width = 275;
+    var childHeight = 60;
+    if(type === 'child'){
+      var coords = [[x_offset, y_offset], //25,25
+                    [x_offset, y_offset + childHeight], //25,85
+                    [x_offset + pegOffset, y_offset + childHeight], //90,85
+                    [x_offset + pegOffset - pegInset, y_offset + childHeight + pegHeight], //85,100
+                    [x_offset + pegOffset + pegWidth + pegInset , y_offset + childHeight + pegHeight], //185,100
+                    [x_offset + pegOffset + pegWidth, y_offset + childHeight], //180,85
+                    [x_offset + width, y_offset + childHeight], //300,85
+                    [x_offset + width, y_offset], //300,25
+                    [x_offset + pegOffset + pegWidth, y_offset], //180,25
+                    [x_offset + pegOffset + pegWidth + pegInset, y_offset + pegHeight], //185,40
+                    [x_offset + pegOffset - pegInset, y_offset + pegHeight], //85,40
+                    [x_offset + pegOffset, y_offset], //90,25
+                   ];
+      var funcHeight = childHeight + pegHeight;
+    }else{
+      var insetMargin = 15;
+      var height = childHeight + 2*pegHeight + children * childHeight;
+      var coords = [[x_offset, y_offset], //25,25
+                    [x_offset, y_offset + height], //25,85
+                    [x_offset + pegOffset, y_offset + height], //90,85
+                    [x_offset + pegOffset - pegInset, y_offset + height + pegHeight], //85,100
+                    [x_offset + pegOffset + pegWidth + pegInset , y_offset + height + pegHeight], //185,100
+                    [x_offset + pegOffset + pegWidth, y_offset + height], //180,85
+                    [x_offset + width, y_offset + height], //300,85
+                    [x_offset + width, y_offset + height - 2*pegHeight], //inner start
+                    [x_offset + pegOffset, y_offset + height - 2*pegHeight], //300,85
+                    [x_offset + insetMargin, y_offset + height - 2*pegHeight], //300,85
+                    [x_offset + insetMargin, y_offset + height - 2*pegHeight - children * childHeight], //300,85
+                    [x_offset + width, y_offset + height - 2*pegHeight - children * 60], //inner end
+                    [x_offset + width, y_offset], //300,25
+                    [x_offset + pegOffset + pegWidth, y_offset], //180,25
+                    [x_offset + pegOffset + pegWidth + pegInset, y_offset + pegHeight], //185,40
+                    [x_offset + pegOffset - pegInset, y_offset + pegHeight], //85,40
+                    [x_offset + pegOffset, y_offset], //90,25
+                   ];
+      var funcHeight = (children + 1) * childHeight + 2*pegHeight;
+    }
+    var output_arr = [];
+    for(var i in coords){
+      output_arr.push(coords[i].join(','));
+    }
+    var canvasWidth = width + 2*x_offset
+    var canvasHeight = funcHeight + 2*y_offset;
+    if(placeholder){
+      return '<svg class="bg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" width="' + canvasWidth + 'px" height="' + canvasHeight + 'px" viewBox="0 0 ' + canvasWidth + ' ' + canvasHeight + '" enable-background="new 0 0 ' + canvasWidth + ' ' + canvasHeight + '" xml:space="preserve"><polygon fill="#FFFFFF" stroke="#666" stroke-dasharray="5,5" points="' + output_arr.join(' ') + '"/></svg>'
+    }
+    return '<svg class="bg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" width="' + canvasWidth + 'px" height="' + canvasHeight + 'px" viewBox="0 0 ' + canvasWidth + ' ' + canvasHeight + '" enable-background="new 0 0 ' + canvasWidth + ' ' + canvasHeight + '" xml:space="preserve"><filter id="dropshadow" height="130%"><feGaussianBlur in="SourceAlpha" stdDeviation="5"/><feOffset dx="6" dy="6" result="offsetblur"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter><polygon fill="#FFFFFF" stroke="#666" points="' + output_arr.join(' ') + '"/></svg>';
+  },
   addFunctions: function(){
     var self = this;
     $.each(this.functions, function(i, f){
-      var fn = $('<li class="function fn-' + f.name + '" data-fntype="' + f.name + '"><svg class="bg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" width="350px" height="150px" viewBox="0 0 350 150" enable-background="new 0 0 320 125" xml:space="preserve"><filter id="dropshadow" height="130%"><feGaussianBlur in="SourceAlpha" stdDeviation="5"/><feOffset dx="6" dy="6" result="offsetblur"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter><polygon fill="#FFFFFF" stroke="#666" points="180,25 185,40 85,40 90,25 25,25 25,50 25,85 90,85 85,100 185,100 180,85 300,85 300,25"/></svg></li>');
+      if(f.type === 'parent'){
+        var childCount = 1;
+        var fn = $('<li class="function fn-' + f.name + '" data-fntype="' + f.name + '">' + self.svgData(f.type, childCount) + '</li>');
+      }else{
+        var fn = $('<li class="function fn-' + f.name + '" data-fntype="' + f.name + '">' + self.svgData(f.type) + '</li>');
+      }
       var details = $('<div class="details"></div>')
       fn.append(details);
       for(var i in f.content){
