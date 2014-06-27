@@ -139,9 +139,9 @@ task :create_bin do
       file_contents << File.read(f).force_encoding('ASCII-8BIT')
       headers << FileHeader.new(:next_file => (i+1) * 56, :file_name => f.gsub($output_dir, ''), :file_len => file_contents.last.length, :file_type => type)
       headers.last.file_loc = (56 * files.length) + file_contents.join.length - file_contents.last.length
-      if pos = file_contents.last =~ /(\/\*<%.*%>\*\/)/
+      if pos = file_contents.last =~ /(\/\*<%(.*)%>\*\/)/m
         headers.last.dyn_addr = pos
-        headers.last.dyn_length = $1.length
+        headers.last.dyn_length = $2.length + 8
       end
     end
   end
