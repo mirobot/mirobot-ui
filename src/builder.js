@@ -119,9 +119,7 @@ Builder.prototype = {
     this.runner.on('click', function(e){self.runProgram(e)});
     this.stop.on('click', function(e){self.stopProgram(e)});
     this.clear.on('click', function(e){self.clearProgram(e)});
-    this.conn = $('<span class="connState">Connecting</span>');
     this.mirobot.addListener(function(state){ self.mirobotHandler(state) });
-    right.append(this.conn);
     right.append(this.runner);
     right.append(this.pause);
     right.append(this.stop);
@@ -130,14 +128,7 @@ Builder.prototype = {
     this.addFunctions();
   },
   mirobotHandler: function(state){
-    console.log(state);
-    if(state === 'connected'){
-      $(this.conn).html('&#10003; Connected');
-      $(this.conn).addClass('connected');
-    }else if(state === 'disconnected'){
-      $(this.conn).html('&#10007; Reconnecting');
-      $(this.conn).removeClass('connected');
-    }else if(state === 'program_complete'){
+    if(state === 'program_complete'){
       this.runner.show();
       this.pause.hide();
     }
