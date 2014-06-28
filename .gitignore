@@ -2,3 +2,4 @@ out
 dist
 .DS_Store
 *.swp
+temp
