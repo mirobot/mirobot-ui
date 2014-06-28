@@ -1,0 +1,38 @@
+updateWirelessConfig(function(){
+/*<%
+CONFIG_VAR(sta_setting_ssid, CFG_WSSSID);
+CONFIG_VAR(sta_setting_auth, CFG_WSAUTH);
+CONFIG_VAR(sta_setting_encry, CFG_WSENC);
+CONFIG_VAR(sta_setting_wpakey, CFG_WSKEY);
+CONFIG_VAR(cover_sta_rssi, CFG_WSRSSI);
+CONFIG_VAR(wan_setting_dhcp, CFG_WSDHCP);
+CONFIG_VAR(wan_setting_ip, CFG_WSIP);
+CONFIG_VAR(wan_setting_msk, CFG_WSMSK);
+CONFIG_VAR(wan_setting_gw, CFG_WSGW);
+CONFIG_VAR(wan_setting_dns, CFG_WSDNS);
+%>*/
+  if(typeof sta_setting_ssid === 'undefined'){ //used for testing locally
+    sta_setting_ssid = 'Dummy';
+    sta_setting_auth = 'WPA2PSK';
+    sta_setting_encry = 'AES';
+    sta_setting_wpakey = 'pass';
+    cover_sta_rssi = '78%';
+    wan_setting_dhcp = 'DHCP'
+    wan_setting_ip = '192.168.1.100';
+    wan_setting_msk = '255.255.255.0';
+    wan_setting_gw = '191.168.1.1';
+    wan_setting_dns = '194.168.0.72';
+  }
+  return {
+    sta_setting_ssid: sta_setting_ssid,
+    sta_setting_auth: sta_setting_auth,
+    sta_setting_encry: sta_setting_encry,
+    sta_setting_wpakey: sta_setting_wpakey,
+    wan_setting_dhcp: wan_setting_dhcp,
+    wan_setting_ip: wan_setting_ip,
+    wan_setting_msk: wan_setting_msk,
+    wan_setting_gw: wan_setting_gw,
+    wan_setting_dns: wan_setting_dns,
+    cover_sta_rssi: cover_sta_rssi
+  }
+}())

@@ -1,0 +1,413 @@
+<html>
+<head>
+  <style>
+    body {
+      background-color: #fff;
+      font-family: sans-serif;
+    }
+  </style>
+	<script type="text/javascript">
+/*<%
+CONFIG_VAR(sta_setting_ssid, CFG_WSSSID);
+CONFIG_VAR(sta_setting_auth, CFG_WSAUTH);
+CONFIG_VAR(sta_setting_encry, CFG_WSENC);
+CONFIG_VAR(sta_setting_wpakey, CFG_WSKEY);
+CONFIG_VAR(wan_setting_dhcp, CFG_WSDHCP);
+CONFIG_VAR(wan_setting_ip, CFG_WSIP);
+CONFIG_VAR(wan_setting_msk, CFG_WSMSK);
+CONFIG_VAR(wan_setting_gw, CFG_WSGW);
+CONFIG_VAR(wan_setting_dns, CFG_WSDNS);
+%>*/
+
+  if(typeof sta_setting_ssid === 'undefined'){ //used for testing locally
+    var sta_setting_ssid = 'Dummy';
+    var sta_setting_auth = 'WPA2PSK';
+    var sta_setting_encry = 'AES';
+    var sta_setting_wpakey = 'pass';
+    var wan_setting_dhcp = 'DHCP'
+    var wan_setting_ip = '192.168.1.100';
+    var wan_setting_msk = '255.255.255.0';
+    var wan_setting_gw = '191.168.1.1';
+    var wan_setting_dns = '194.168.0.72';
+  }
+
+	var wpa_key_show= "0";
+	function wpa_key_check_changed(){
+		if (wpa_key_show == "1"){
+			if (window.ActiveXObject){
+				document.all('sta_setting_wpakey').outerHTML="<input type=password maxlength=64 size=32 name=sta_setting_wpakey id=wep_key_text class='text' value='"+document.all('sta_setting_wpakey').value+"'>";
+			}else{
+				document.getElementById('wpa_key_text').type = "password";
+			}
+			wpa_key_show="0";
+		}else{
+			if (window.ActiveXObject){
+				document.all('sta_setting_wpakey').outerHTML="<input type=text maxlength=64 size=32 name=sta_setting_wpakey id=wep_key_text class='text' value='"+document.all('sta_setting_wpakey').value+"'>";
+			}else{
+				document.getElementById('wpa_key_text').type = "text";
+			}
+			wpa_key_show="1";
+		}
+	}
+	
+	function enableCon(c,v){
+		var con = document.getElementById(c);
+		if(con  != null){
+			if(v == 1){
+				con.disabled = "disabled";
+			}else{
+				con.disabled = "";
+			}
+		}
+	}
+	
+	function show(v){
+		var c = document.getElementById(v);
+		if(c != null){
+			c.style.visibility = "visible";
+			c.style.display = "";
+		}
+	}
+	
+	function hide(v){
+		var c = document.getElementById(v);
+		if(c != null){
+			c.style.visibility = "hidden";
+			c.style.display = "none";
+		}
+	}
+	
+	function dhcp(v){
+		var c;
+		if(v == 2){
+			c = document.getElementById("div_3_dhcp");
+			if(c != null){
+				if(c.value == "DHCP"){
+					enableCon("div_3_ip",1);
+					enableCon("div_3_sub",1);
+					enableCon("div_3_gate",1);
+					enableCon("div_3_dns",1);
+				}else{
+					enableCon("div_3_ip",2);
+					enableCon("div_3_sub",2);
+					enableCon("div_3_gate",2);
+					enableCon("div_3_dns",2);
+				}
+			}
+		}
+	}
+	
+	function sta_setting_set(){
+		var f=document.form_sta_setting;
+		f.sta_setting_ssid.value=sta_setting_ssid;
+		if ((sta_setting_auth== "OPEN")&&(sta_setting_encry== "NONE")){
+			f.sta_setting_auth_sel.options.selectedIndex= 0;
+		}else if ((sta_setting_auth== "OPEN")&&(sta_setting_encry== "WEP_A")){
+			f.sta_setting_auth_sel.options.selectedIndex= 1;
+			f.sta_setting_type_sel.options.selectedIndex= 0;
+		}else if ((sta_setting_auth== "OPEN")&&(sta_setting_encry== "WEP_H")){
+			f.sta_setting_auth_sel.options.selectedIndex= 1;
+			f.sta_setting_type_sel.options.selectedIndex= 1;
+		}else if ((sta_setting_auth== "SHARED")&&(sta_setting_encry== "WEP_A")){
+			f.sta_setting_auth_sel.options.selectedIndex= 2;
+			f.sta_setting_type_sel.options.selectedIndex= 0;
+		}else if ((sta_setting_auth== "SHARED")&&(sta_setting_encry== "WEP_H")){
+			f.sta_setting_auth_sel.options.selectedIndex= 2;
+			f.sta_setting_type_sel.options.selectedIndex= 1;
+		}else if ((sta_setting_auth== "WPAPSK")){
+			f.sta_setting_auth_sel.options.selectedIndex= 3;
+		}else if ((sta_setting_auth== "WPA2PSK")){
+			f.sta_setting_auth_sel.options.selectedIndex= 4;
+		}else{
+			f.sta_setting_auth_sel.options.selectedIndex= 0;
+		}
+		
+		if ((sta_setting_auth== "WPAPSK")||(sta_setting_auth== "WPA2PSK")){
+			if (sta_setting_encry== "TKIP"){
+				f.sta_setting_encry_sel.options.selectedIndex= 0;
+			}else if(sta_setting_encry== "AES"){
+				f.sta_setting_encry_sel.options.selectedIndex= 1;
+			}else{
+			    f.sta_setting_encry_sel.options.selectedIndex= 2;
+			}
+			show("wpa_enc");
+		}else{
+			hide("wpa_enc");
+		}
+		auth_change();
+	}
+	
+	function init_sta_setting(){
+		var f=document.form_sta_setting;
+		sta_setting_set();
+		f.sta_setting_wpakey.value= sta_setting_wpakey;
+		f.wan_setting_dhcp.value= wan_setting_dhcp;
+		f.wan_setting_ip.value= wan_setting_ip;
+		f.wan_setting_msk.value= wan_setting_msk;
+		f.wan_setting_gw.value= wan_setting_gw;
+		f.wan_setting_dns.value= wan_setting_dns;
+		dhcp(2);
+	}
+	
+	function to_server(gg_ssid, gg_bssid, gg_auth, gg_encry){
+		var gg=document.form_sta_setting;
+		gg.sta_setting_wpakey.value= "";
+		sta_setting_ssid= gg_ssid;
+		sta_setting_auth= gg_auth;
+		if (gg_encry== "WEP"){
+			sta_setting_encry= gg_encry+"_A";
+		}else{
+			sta_setting_encry= gg_encry;
+		}
+		sta_setting_set();
+		if (sta_setting_encry!= "NONE"){
+			alert('The password is empty!');
+			document.form_sta_setting.sta_setting_wpakey.focus();
+			document.form_sta_setting.sta_setting_wpakey.select();
+		}
+	}
+	
+	function ipAdd(v){
+		var re=/^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$/;
+		return re.test(v);
+	}
+	
+	function sta_form_apply(){
+		var f=document.form_sta_setting;
+		if(f.sta_setting_ssid.value==""){
+			alert("SSID is empty!");
+			return;
+		}
+		if(f.sta_setting_ssid.value.length>32){
+			alert("Please enter 1-32 characters!");
+			return;
+		}
+		if (f.sta_setting_auth_sel.options.selectedIndex== 0){
+			f.sta_setting_auth.value= "OPEN";
+			f.sta_setting_encry.value= "NONE";
+		}else if (f.sta_setting_auth_sel.options.selectedIndex== 1&&f.sta_setting_type_sel.options.selectedIndex==0){
+			f.sta_setting_auth.value= "OPEN";
+			f.sta_setting_encry.value= "WEP_A";
+		}else if (f.sta_setting_auth_sel.options.selectedIndex== 1&&f.sta_setting_type_sel.options.selectedIndex==1){
+			f.sta_setting_auth.value= "OPEN";
+			f.sta_setting_encry.value= "WEP_H";
+		}else if (f.sta_setting_auth_sel.options.selectedIndex== 2&&f.sta_setting_type_sel.options.selectedIndex==0){
+			f.sta_setting_auth.value= "SHARED";
+			f.sta_setting_encry.value= "WEP_A";
+		}else if (f.sta_setting_auth_sel.options.selectedIndex== 2&&f.sta_setting_type_sel.options.selectedIndex==1){
+			f.sta_setting_auth.value= "SHARED";
+			f.sta_setting_encry.value= "WEP_H";
+		}else if (f.sta_setting_auth_sel.options.selectedIndex== 3){
+			f.sta_setting_auth.value= "WPAPSK";
+		}else if (f.sta_setting_auth_sel.options.selectedIndex== 4){
+			f.sta_setting_auth.value= "WPA2PSK";
+		}else{
+			f.sta_setting_auth.value= "OPEN";
+			f.sta_setting_encry.value= "NONE";
+		}
+		
+		if ((f.sta_setting_auth.value== "WPAPSK")||(f.sta_setting_auth.value== "WPA2PSK")){
+			if (f.sta_setting_encry_sel.options.selectedIndex== 0){
+				f.sta_setting_encry.value= "TKIP";
+			}else if(f.sta_setting_encry_sel.options.selectedIndex== 1){
+				f.sta_setting_encry.value= "AES";
+			}else{
+			  f.sta_setting_encry.value= "TKIPAES";
+			}
+		}
+		
+		if((f.sta_setting_auth_sel.options.selectedIndex!=0)&&(f.sta_setting_wpakey.value == "")){
+			alert("The password is empty!");
+			return;
+		}
+		
+		if(f.sta_setting_encry.value== "WEP_A"){
+			if((f.sta_setting_wpakey.value.length!=5)&&(f.sta_setting_wpakey.value.length!=13)){
+				alert("Please enter 5 or 13 ASCII!");
+				return;
+			}
+		}
+		
+		if(f.sta_setting_encry.value== "WEP_H"){
+			if((f.sta_setting_wpakey.value.length!=10)&&(f.sta_setting_wpakey.value.length!=26)){
+				alert("Please enter 10 or 26 Hex!");
+				return;
+			}
+		}
+		
+		if ((f.sta_setting_auth.value== "WPAPSK")||(f.sta_setting_auth.value== "WPA2PSK")){
+			if((f.sta_setting_wpakey.value.length<8)||(f.sta_setting_wpakey.value.length>64)){
+				alert("Please enter 8-63 characters!");
+				return;
+			}
+		}
+		
+		if(!ipAdd(f.wan_setting_ip.value)){
+			alert("Invalid IP address!");
+			return;
+		}
+		
+		if(!ipAdd(f.wan_setting_msk.value)){
+			alert("Invalid subnet mask!");
+			return;
+		}
+		
+		if(!ipAdd(f.wan_setting_gw.value)){
+			alert("Invalid gateway address!");
+			return;
+		}
+		
+		if(!ipAdd(f.wan_setting_dns.value)){
+			alert("Invalid DNS server address!");
+			return;
+		}
+		
+		f.submit();
+	}
+	
+	function auth_change(){
+		var v=document.form_sta_setting.sta_setting_auth_sel.options.selectedIndex;
+		if (v== 0){
+			hide("sta_key");
+			hide("wpa_enc");
+			hide("wpa_type");
+		}else if ((v== 3)||(v==4)){
+			show("sta_key");
+			show("wpa_enc");
+			hide("wpa_type");
+		}else{
+			show("sta_key");
+			show("wpa_type");
+			hide("wpa_enc");
+		}
+	}
+	
+  var gg_ssid="";
+  var gg_channel;
+  var gg_bssid;
+  var gg_auth;
+  var gg_encry;
+  
+  function set_value(ssid, bssid, channel, auth, encry){
+    gg_ssid = ssid;
+    gg_channel = channel;
+    gg_bssid = bssid;
+    gg_auth= auth;
+    gg_encry= encry;
+  }
+  
+  function search(){
+    hide("div_3_1");
+    show("div_3_2");
+    document.getElementById("sta_search_iframe").src= "site_survey.html";
+    document.getElementById("refresh").disabled=true;
+    setTimeout("eb()",3000);
+  }
+  
+  function eb(){
+    document.getElementById("refresh").disabled=false;
+  }
+  
+	</script>
+</head>
+<body class="in_body" onload="init_sta_setting()">
+    <div class="div_c">
+        <form name= "form_sta_setting" method="post" action="do_cmd_en.html">
+		<input type="hidden" name="sta_setting_encry">
+		<input type="hidden" name="sta_setting_auth">
+        <div id="div_3_1">
+            <div class="label">Network Name</div>
+            <div class="fw"><input name="sta_setting_ssid" type="text" />
+			<input type="button" class="btn l4" value="Scan" onclick="search()"/>
+            </div>
+            <div class="cl"></div>
+            <div class="line"></div>
+            <div class="label">Encryption Method</div>
+            <div class="fw"><select name="sta_setting_auth_sel" onchange="auth_change()">
+				<option value="OPENNONE">Disable</option>
+				<option value="OPENWEP">OPENWEP</option>
+				<option value="SHAREDWEP">SHAREDWEP</option>
+				<option value="WPAPSK">WPAPSK</option>
+				<option value="WPA2PSK">WPA2PSK</option>
+				</select>
+			</div>
+            <div class="cl"></div>
+            <div class="line"></div>
+			<div id="wpa_enc" style="visibility:hidden;display:none">
+				<div class="label">Encryption Algorithm</div>
+				<div class="fw"><select name="sta_setting_encry_sel">
+				<option selected="selected" value="TKIP">TKIP</option>
+				<option value="AES">AES</option>
+				<option value="TKIPAES">TKIPAES</option>
+				</select>
+				</div>
+				<div class="cl"></div>
+				<div class="line"></div>
+			</div>
+			<div id="wpa_type" style="visibility:hidden;display:none">
+				<div class="label">Encryption Type</div>
+				<div class="fw"><select name="sta_setting_type_sel">
+				<option selected="selected" value="ASCII">ASCII</option>
+				<option value="HEX">HEX</option>
+				</select>
+				</div>
+				<div class="cl"></div>
+				<div class="line"></div>
+			</div>
+			<div id="sta_key" style="visibility:hidden;display:none">
+				<div class="label">Password</div>
+				<div class="fw">
+				<input name="sta_setting_wpakey" type="password" class="text" id="wpa_key_text">
+				<div>
+				<input onclick="wpa_key_check_changed()" type="checkbox"/>
+				Show passwords
+				</div>
+				</div>
+				<div class="cl"></div>
+				<div class="line"></div>
+			</div>
+            <div class="label">Obtain an IP address automatically</div>
+            <div class="fw">
+			<select name="wan_setting_dhcp" id="div_3_dhcp" onchange="dhcp(2)">
+			<option value="DHCP">Enable</option>
+			<option value="STATIC">Disable</option>
+			</select>
+			</div>
+            <div class="cl"></div>
+            <div class="line"></div>
+            <div class="label">IP Address</div>
+            <div class="fw"><input name="wan_setting_ip" id="div_3_ip" type="text" class="text"></div>
+            <div class="cl"></div>
+            <div class="line"></div>
+            <div class="label">Subnet Mask</div>
+            <div class="fw"><input name="wan_setting_msk" id="div_3_sub" type="text" class="text"></div>
+            <div class="cl"></div>
+            <div class="line"></div>
+            <div class="label">Gateway Address</div>
+            <div class="fw"><input name="wan_setting_gw" id="div_3_gate" type="text" class="text"></div>
+            <div class="cl"></div>
+            <div class="line"></div>
+            <div class="label">DNS Server Address</div>
+            <div class="fw"><input name="wan_setting_dns" id="div_3_dns" type="text" class="text"></div>
+            <div class="cl"></div>
+            <div class="line"></div>
+            <div>
+                <input onclick="sta_form_apply()" type="button" class="btn" value="Save"/>
+            </div>
+        </div>
+		</form>
+        <div style="display:none" id="div_3_2">
+            <font class="white s15 b">Please select your current wireless network</font>
+            <div class="sp_30"></div>
+            <div>
+				<iframe frameborder="0" style="border:none;width:100%;height:300px; border-spacing:0px;" id="sta_search_iframe"></iframe>
+            </div>
+            <div class="sp_20"></div>
+            <div class="lab_4 tr">
+			<input type="button" class="btn r10" value="OK" onclick="hide('div_3_2');show('div_3_1');to_server(gg_ssid, gg_bssid, gg_auth, gg_encry);"/>
+			<input onclick="search()" type="button" class="btn" value="Refresh" id="refresh"/></div>
+        </div>
+    </div>
+</body>
+</html>
+

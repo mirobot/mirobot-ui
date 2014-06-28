@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  body {
+    background-color: #fff;
+    font-family: sans-serif;
+  }
+</style>
+</head>
+<body>
+  <form id="form_do_cmd" method="post" action="success_en.html">
+    <input type=hidden name="HF_PROCESS_CMD" value="RESTART">
+    <p>Configuration saved. Restarting now!</p>
+  </form>
+<script>
+window.setTimeout(function(){
+  document.getElementById('form_do_cmd').submit();
+}, 2000);
+</script>
+</body>
+</html>
