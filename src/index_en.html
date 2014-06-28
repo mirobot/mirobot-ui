@@ -208,8 +208,8 @@
     <span id="miroConnState" class="connState"></span>
   </div>
   <div id="wifiConfig" style="display:none">
-    <div class="content">
-      <iframe src=""></iframe>
+    <div class="content" id="wifiContent">
+      <iframe src="" id="wifiFrame"></iframe>
     </div>
   </div>
   <div id="code"></div>
@@ -259,6 +259,10 @@ CONFIG_VAR(cover_ver, CFG_PVER);
 }();
     var has_remote_conn = false;
     
+    var el = function(id){
+      return document.getElementById(id);
+    }
+
     function LoadScripts (done) {
         var scripts = [];
         var _scripts = ['jquery-custom-min.js', 'jquery-sortable.js', 'mirobot.js', 'builder.js'];
@@ -306,13 +310,13 @@ CONFIG_VAR(cover_ver, CFG_PVER);
     updateWirelessConfig = function(config){
       wirelessConfig = config;
       
-      var conn = $('#wifiConnState');
+      var conn = el('wifiConnState');
       if(wirelessConfig.wan_setting_ip === '0.0.0.0'){
-        $(conn).html('&#10007; Configure WiFi');
-        $(conn).removeClass('connected');
+        conn.innerHTML = '&#10007; Configure WiFi';
+        conn.className = 'connState';
       }else{
-        $(conn).html('&#10003; Connected to WiFi (' + wirelessConfig.cover_sta_rssi + ')');
-        $(conn).addClass('connected');
+        conn.innerHTML = '&#10003; Connected to WiFi (' + wirelessConfig.cover_sta_rssi + ')';
+        conn.className = 'connState connected';
       }
     }
 
@@ -324,21 +328,21 @@ CONFIG_VAR(cover_ver, CFG_PVER);
     }
 
     var hideWifiConfig = function(){
-      $('#wifiConfig').hide()
+      el('wifiConfig').style.display = 'none';
       // unbind the event
-      $("body").off("keyup", escEvent);
+      document.body.onkeyup = undefined;
     }
     
     var configureWifi = function(e){
       e.preventDefault();
-      $('#wifiConfig iframe').attr('src', '/wireless_en.html');
-      $('#wifiConfig').show();
-      $('#wifiConfig .content').on('click', function(e){e.stopPropagation()});
-      $('#wifiConfig').on('click', hideWifiConfig);
-      $("body").on("keyup", escEvent);
+      el('wifiFrame').src = '/wireless_en.html';
+      el('wifiConfig').style.display = 'block';
+      el('wifiContent').onclick = function(e){e.stopPropagation()};
+      el('wifiConfig').onclick = hideWifiConfig;
+      document.body.onkeyup = escEvent;
     }
     
-    var setup = function(){
+    var initProgram = function(){
       var host;
       if(window.location.hash !== '' && window.location.hash.match(/#m=/)){
         host = window.location.hash.replace('#m=', '')
@@ -360,17 +364,16 @@ CONFIG_VAR(cover_ver, CFG_PVER);
       }
       
       mirobot.addListener(mirobotHandler);
-      
-      updateWirelessConfig(wirelessConfig);
-      $('#wifiConnState').on('click', configureWifi);
-
     }
+
     window.onload = function(){
       LoadScripts(function(){
-        setup();
+        initProgram();
       });
     }
 
+    updateWirelessConfig(wirelessConfig);
+    el('wifiConnState').onclick = configureWifi;
   </script>
 </body>
 </html>
