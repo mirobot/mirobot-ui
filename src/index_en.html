@@ -268,6 +268,7 @@ CONFIG_VAR(cover_ver, CFG_PVER);
     var has_remote_conn = false;
     
     var ui_version = '20140629';
+    var mirobot_version = 'unknown';
 
     var el = function(id){
       return document.getElementById(id);
@@ -352,6 +353,10 @@ CONFIG_VAR(cover_ver, CFG_PVER);
       document.body.onkeyup = escEvent;
     }
     
+    var setVersions = function(){
+      el('version').innerHTML = "Firmware version: " + mirobot_version + " | UI version: " + ui_version;
+    }
+
     var initProgram = function(){
       var host;
       if(window.location.hash !== '' && window.location.hash.match(/#m=/)){
@@ -362,9 +367,17 @@ CONFIG_VAR(cover_ver, CFG_PVER);
       var mirobot = new Mirobot('ws://' + host + ':8899/websocket');
       var builder = new Builder($('#code'), mirobot);
 
-      mirobotHandler = function(state){
+      var mirobotHandler = function(state){
         var conn = $('#miroConnState');
         if(state === 'connected'){
+          if(mirobot_version === 'unknown'){
+            mirobot.version(function(state, msg){
+              if(msg.msg){
+                mirobot_version = msg.msg;
+              }
+              setVersions();
+            });
+          }
           $(conn).html('&#10003; Connected to Mirobot');
           $(conn).addClass('connected');
         }else if(state === 'disconnected'){
@@ -384,7 +397,7 @@ CONFIG_VAR(cover_ver, CFG_PVER);
 
     updateWirelessConfig(wirelessConfig);
     el('wifiConnState').onclick = configureWifi;
-    el('version').innerHTML = "Version: " + ui_version;
+    setVersions();
   </script>
 </body>
 </html>

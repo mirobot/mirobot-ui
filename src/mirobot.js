@@ -104,11 +104,15 @@ Mirobot.prototype = {
     this.send({cmd:'ping'}, cb);
   },
 
+  version: function(cb){
+    this.send({cmd:'version'}, cb);
+  },
+
   send: function(msg, cb){
     msg.id = Math.random().toString(36).substr(2, 10)
     this.cbs[msg.id] = cb;
     if(msg.arg){ msg.arg = msg.arg.toString(); }
-    if(['stop', 'pause', 'resume', 'ping'].indexOf(msg.cmd) >= 0){
+    if(['stop', 'pause', 'resume', 'ping', 'version'].indexOf(msg.cmd) >= 0){
       console.log(msg);
       this.ws.send(JSON.stringify(msg));
     }else{
@@ -135,12 +139,12 @@ Mirobot.prototype = {
     if(this.msg_stack.length > 0 && this.msg_stack[0].id == msg.id){
       if(msg.status === 'accepted'){
         if(this.cbs[msg.id]){
-          this.cbs[msg.id]('started');
+          this.cbs[msg.id]('started', msg);
         }
         this.robot_state = 'running';
       }else if(msg.status === 'complete'){
         if(this.cbs[msg.id]){
-          this.cbs[msg.id]('complete');
+          this.cbs[msg.id]('complete', msg);
           delete this.cbs[msg.id];
         }
         this.msg_stack.shift();
@@ -152,7 +156,7 @@ Mirobot.prototype = {
       }
     }else{
       if(this.cbs[msg.id]){
-        this.cbs[msg.id]('complete');
+        this.cbs[msg.id]('complete', msg);
         delete this.cbs[msg.id];
       }
     } 
