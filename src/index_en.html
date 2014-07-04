@@ -222,6 +222,13 @@
   </div>
   <div id="code"></div>
   <script>
+    var mirobot;
+
+    var has_remote_conn = true;
+
+    var ui_version = '20140629';
+    var mirobot_version = 'unknown';
+
     var wirelessConfig = function(){
 /*<%
 CONFIG_VAR(sta_setting_ssid, CFG_WSSSID);
@@ -265,10 +272,6 @@ CONFIG_VAR(cover_ver, CFG_PVER);
     cover_ver: cover_ver
   }
 }();
-    var has_remote_conn = false;
-    
-    var ui_version = '20140629';
-    var mirobot_version = 'unknown';
 
     var el = function(id){
       return document.getElementById(id);
@@ -311,7 +314,7 @@ CONFIG_VAR(cover_ver, CFG_PVER);
         callback();
       }
       if(has_remote_conn){
-        script.src = 'http://mirobot.io/assets/mirobot_jsx/' + src;
+        script.src = 'http://mirobot.io/assets/mirobot_js/' + src;
       }else{
         script.src = src;
       }
@@ -357,6 +360,15 @@ CONFIG_VAR(cover_ver, CFG_PVER);
       el('version').innerHTML = "Firmware version: " + mirobot_version + " | UI version: " + ui_version;
     }
 
+    var getVersion = function(){
+      mirobot.version(function(state, msg){
+        if(msg.msg){
+          mirobot_version = msg.msg;
+        }
+        setVersions();
+      });
+    }
+
     var initProgram = function(){
       var host;
       if(window.location.hash !== '' && window.location.hash.match(/#m=/)){
@@ -364,19 +376,14 @@ CONFIG_VAR(cover_ver, CFG_PVER);
       }else{
         host = window.location.hostname;
       }
-      var mirobot = new Mirobot('ws://' + host + ':8899/websocket');
+      mirobot = new Mirobot('ws://' + host + ':8899/websocket');
       var builder = new Builder($('#code'), mirobot);
 
       var mirobotHandler = function(state){
         var conn = $('#miroConnState');
         if(state === 'connected'){
           if(mirobot_version === 'unknown'){
-            mirobot.version(function(state, msg){
-              if(msg.msg){
-                mirobot_version = msg.msg;
-              }
-              setVersions();
-            });
+            window.setTimeout(getVersion, 1000);
           }
           $(conn).html('&#10003; Connected to Mirobot');
           $(conn).addClass('connected');
