@@ -242,6 +242,7 @@ CONFIG_VAR(wan_setting_msk, CFG_WSMSK);
 CONFIG_VAR(wan_setting_gw, CFG_WSGW);
 CONFIG_VAR(wan_setting_dns, CFG_WSDNS);
 CONFIG_VAR(cover_ver, CFG_PVER);
+CONFIG_VAR(wifi_mode, CFG_WMODE);
 %>*/
   if(typeof sta_setting_ssid === 'undefined'){ //used for testing locally
     sta_setting_ssid = 'Dummy';
@@ -256,6 +257,7 @@ CONFIG_VAR(cover_ver, CFG_PVER);
     wan_setting_gw = '191.168.1.1';
     wan_setting_dns = '194.168.0.72';
     cover_ver = 'V1.0.03a';
+    wifi_mode = 'APSTA';
   }
   return {
     sta_setting_ssid: sta_setting_ssid,
@@ -269,7 +271,8 @@ CONFIG_VAR(cover_ver, CFG_PVER);
     wan_setting_gw: wan_setting_gw,
     wan_setting_dns: wan_setting_dns,
     cover_sta_rssi: cover_sta_rssi,
-    cover_ver: cover_ver
+    cover_ver: cover_ver,
+    wifi_mode: wifi_mode
   }
 }();
 

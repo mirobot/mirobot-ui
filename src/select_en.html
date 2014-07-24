@@ -1,0 +1,29 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <style>
+    body {
+      background-color: #fff;
+      font-family: sans-serif;
+    }
+  </style>
+	<script type="text/javascript">
+/*<%
+CONFIG_VAR(wifi_mode, CFG_WMODE);
+%>*/
+	function init()
+	{
+	  window.setTimeout(function(){
+			document.form_wmode.submit();
+		}, 3000);
+	}
+	</script>
+</head>
+<body onload="init()">
+		<form name= "form_wmode" method="post" action="do_cmd_en.html">
+      <input name="wifi_mode" value="APSTA" type="hidden">
+      <p>Enabling WiFi connections. Please wait 20 seconds for Mirobot to restart then try again.</p>
+		</form>
+</body>
+</html>
