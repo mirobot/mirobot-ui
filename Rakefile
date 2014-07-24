@@ -129,7 +129,7 @@ end
 
 task :create_bin do
   puts "Generating bin file"
-  outfile = "#{$dist_dir}/lpb_web.bin"
+  outfile = "#{$dist_dir}/mirobot.bin"
   headers = []
   file_contents = []
   files = Dir.glob("#{$output_dir}/*")
