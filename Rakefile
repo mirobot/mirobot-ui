@@ -15,11 +15,12 @@ $output_dir = 'out'
 $dist_dir = 'dist'
 
 def squish_file(input)
-  return input if input.include?('/*<%') && input.include?('%>*/')
   doc = Nokogiri::HTML(input)
   # Compress all of the inline scripts
-  doc.xpath('//script').each do |s|   
-    s.content = Uglifier.new({:comments => :all}).compile(s.content) unless s['src']
+  doc.xpath('//script').each do |s|
+    unless (s.content.include?('/*<%') && s.content.include?('%>*/'))
+      s.content = Uglifier.new({:comments => :all}).compile(s.content) unless s['src']
+    end
   end
   # Remove whitespace from the html
   doc.xpath('//text()').each do |node|
@@ -161,7 +162,6 @@ task :create_bin do
   output += "\xAA\x88".force_encoding('ASCII-8BIT')
   output += [crc].pack('V')
   output += "\xAA\x88".force_encoding('ASCII-8BIT')
-  printf("CRC:%x\r\n", crc)
   Dir.mkdir($dist_dir) unless Dir.exists?($dist_dir)
   File.delete(outfile) if File.exists?(outfile)
   File.open(outfile, 'w') { |file|

@@ -222,17 +222,6 @@
   </div>
   <div id="code"></div>
   <script>
-    var mirobot;
-
-    var has_remote_conn = true;
-
-    var ui_version = '{{timestamp}}';
-    if(ui_version === ('{{time' + 'stamp}}')){
-      ui_version = '20140724'; //So we can use the raw source for testing
-    }
-    
-    var mirobot_version = 'unknown';
-
     var wirelessConfig = function(){
 /*<%
 CONFIG_VAR(sta_setting_ssid, CFG_WSSSID);
@@ -279,6 +268,19 @@ CONFIG_VAR(wifi_mode, CFG_WMODE);
     wifi_mode: wifi_mode
   }
 }();
+ 
+  </script>
+  <script>
+    var mirobot;
+
+    var has_remote_conn = true;
+
+    var ui_version = '{{timestamp}}';
+    if(ui_version === ('{{time' + 'stamp}}')){
+      ui_version = '20140724'; //So we can use the raw source for testing
+    }
+    
+    var mirobot_version = 'unknown';
 
     var el = function(id){
       return document.getElementById(id);
