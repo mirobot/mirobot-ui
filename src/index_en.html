@@ -165,18 +165,18 @@
       border-bottom: 1px solid #BBB;
     }
     
-    #wifiConfig{
+    .modal{
       position:absolute;
       top:0;
       left:0;
     }
-    #wifiConfig{
+    .modal{
       background-color:rgba(0,0,0,0.5);
       width:100%;
       height:100%;
       text-align:center;
     }
-    #wifiConfig .content{
+    .modal .content{
       background-color:#FFF;
       width:400px;
       margin:30px auto;
@@ -215,9 +215,23 @@
     <span id="miroConnState" class="connState"></span>
     <span id="version"></span>
   </div>
-  <div id="wifiConfig" style="display:none">
+  <div id="wifiConfig" class="modal" style="display:none">
     <div class="content" id="wifiContent">
       <iframe src="" id="wifiFrame"></iframe>
+    </div>
+  </div>
+  <div id="upgradeUI" class="modal" style="display:none">
+    <div class="content" id="upgradeUIContent">
+      <h3>Upgrade the Mirobot UI</h3>
+      <p>First download the latest file to your hard drive:</p>
+      <button onclick="downloadLatestUIVersion();return false">Download latest version</button>
+      <p>Then select it here:</p>
+      <form name= "form_sw_upload" method="post" action="data_success.html" enctype="multipart/form-data">
+        <input type="hidden" name="CMD" value="SW_UPLOAD">
+        <input name="files" size="40" maxlength="256" type="file" value="" />
+        <p>Finally, click to upgrade</p>
+        <input type="submit" value="Upgrade Now" />
+      </form>
     </div>
   </div>
   <div id="code"></div>
@@ -275,9 +289,11 @@ CONFIG_VAR(wifi_mode, CFG_WMODE);
 
     var has_remote_conn = true;
 
+    var latest_ui_version = undefined;
+    var latest_ui_file = undefined;
     var ui_version = '{{timestamp}}';
     if(ui_version === ('{{time' + 'stamp}}')){
-      ui_version = '20140724'; //So we can use the raw source for testing
+      ui_version = '20140723'; //So we can use the raw source for testing
     }
     
     var mirobot_version = 'unknown';
@@ -343,15 +359,15 @@ CONFIG_VAR(wifi_mode, CFG_WMODE);
       }
     }
 
-    var escEvent = function(event){
+    var escEvent = function(event, modal){
       if (event.which === 27) { // 27 == "esc"
         // hide the dialog
-        hideWifiConfig();
+        hideModal(modal);
       }
     }
 
-    var hideWifiConfig = function(){
-      el('wifiConfig').style.display = 'none';
+    var hideModal = function(modal){
+      el(modal).style.display = 'none';
       // unbind the event
       document.body.onkeyup = undefined;
     }
@@ -361,12 +377,37 @@ CONFIG_VAR(wifi_mode, CFG_WMODE);
       el('wifiFrame').src = '/wireless_en.html';
       el('wifiConfig').style.display = 'block';
       el('wifiContent').onclick = function(e){e.stopPropagation()};
-      el('wifiConfig').onclick = hideWifiConfig;
-      document.body.onkeyup = escEvent;
+      el('wifiConfig').onclick = function(){hideModal('wifiConfig')};
+      document.body.onkeyup = function(e){ escEvent(e, 'wifiConfig')};
+    }
+    
+    var downloadLatestUIVersion = function(){
+        var hiddenIFrameID = 'hiddenDownloader',
+            iframe = document.getElementById(hiddenIFrameID);
+        if (iframe === null) {
+            iframe = document.createElement('iframe');
+            iframe.id = hiddenIFrameID;
+            iframe.style.display = 'none';
+            document.body.appendChild(iframe);
+        }
+        iframe.src = latest_ui_file;
+    }
+    
+    var upgradeUI = function(){
+      if(latest_ui_version){
+        el('upgradeUI').style.display = 'block';
+        el('upgradeUIContent').onclick = function(e){e.stopPropagation()};
+        el('upgradeUI').onclick = function(){hideModal('upgradeUI')};
+      document.body.onkeyup = function(e){ escEvent(e, 'upgradeUI')};
+      }
     }
     
     var setVersions = function(){
-      el('version').innerHTML = "Firmware version: " + mirobot_version + " | UI version: " + ui_version;
+      var versionString = "Firmware version: " + mirobot_version + " | UI version: " + ui_version;
+      if(latest_ui_version && latest_ui_version > ui_version){
+        versionString += ' <a href="#" onclick="upgradeUI();return false;">Upgrade</a>';
+      }
+      el('version').innerHTML = versionString;
     }
 
     var getVersion = function(){
@@ -377,7 +418,27 @@ CONFIG_VAR(wifi_mode, CFG_WMODE);
         setVersions();
       });
     }
-
+    
+    var checkUIVersion = function(){
+      if(has_remote_conn){
+        $.ajax("https://api.github.com/repos/bjpirt/mirobot-ui/releases", {
+          success: function(res){
+            if(res.length > 0){
+              latest_ui_version = res[0].tag_name;
+              if(res[0].assets.length > 0){
+                for(var i in res[0].assets){
+                  if(res[0].assets[i].name === 'mirobot.bin'){
+                    latest_ui_file = res[0].assets[i].browser_download_url;
+                  }
+                }
+              }
+              setVersions();
+            }
+          }
+        });
+      }
+    }
+    
     var initProgram = function(){
       var host;
       if(window.location.hash !== '' && window.location.hash.match(/#m=/)){
@@ -401,6 +462,8 @@ CONFIG_VAR(wifi_mode, CFG_WMODE);
           $(conn).removeClass('connected');
         }
       }
+      
+      checkUIVersion();
       
       mirobot.addListener(mirobotHandler);
     }
