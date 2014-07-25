@@ -226,7 +226,11 @@
 
     var has_remote_conn = true;
 
-    var ui_version = '20140724';
+    var ui_version = '{{timestamp}}';
+    if(ui_version === ('{{time' + 'stamp}}')){
+      ui_version = '20140724'; //So we can use the raw source for testing
+    }
+    
     var mirobot_version = 'unknown';
 
     var wirelessConfig = function(){

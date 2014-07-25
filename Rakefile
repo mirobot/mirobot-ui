@@ -90,6 +90,10 @@ task :dist do
   Rake::Task["create_bin"].execute
 end
 
+def add_timestamp(input)
+  return input.gsub('{{timestamp}}', Time.now.strftime('%Y%m%d%H%M'))
+end
+
 task :build do
   puts "Building mirobot UI files"
   Rake::Task["clean_output"].execute
@@ -103,6 +107,7 @@ task :build do
     elsif f =~ /.*\.css\z/
       output = CSSminify.compress(file)
     end
+    output = add_timestamp(output)
     File.open(outfile, 'w') { |file|
       file.write(output)
     }
