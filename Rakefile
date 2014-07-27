@@ -100,6 +100,7 @@ task :build do
   Rake::Task["clean_output"].execute
   Dir.glob('src/*').each do |f|
     file = File.read(f)
+    file = add_timestamp(file)
     outfile = f.gsub($input_dir, $output_dir)
     if f =~ /.*\.html\z/
       output = squish_file(file)
@@ -108,7 +109,6 @@ task :build do
     elsif f =~ /.*\.css\z/
       output = CSSminify.compress(file)
     end
-    output = add_timestamp(output)
     File.open(outfile, 'w') { |file|
       file.write(output)
     }
