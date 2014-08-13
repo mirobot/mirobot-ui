@@ -288,30 +288,19 @@ CONFIG_VAR(wifi_mode, CFG_WMODE);
  
   </script>
   <script>
-    var mirobot;
-
     var has_remote_conn = true;
-
-    var latest_ui_version = undefined;
-    var latest_ui_file = undefined;
+    var remote_base = 'http://mirobot.io/assets/mirobot_js/';
     var ui_version = '{{timestamp}}';
     if(ui_version === ('{{time' + 'stamp}}')){
       ui_version = '20140723'; //So we can use the raw source for testing
     }
     
-    var mirobot_version = 'unknown';
-
-    var el = function(id){
-      return document.getElementById(id);
-    }
-
-    function LoadScripts (done) {
+    var LoadScripts = function (_scripts, base_url, done) {
         var scripts = [];
-        var _scripts = ['jquery-custom-min.js', 'jquery-sortable.js', 'mirobot.js', 'builder.js'];
         var x = 0;
         var loopArray = function(_scripts, scripts) {
           // call itself
-          loadScript(_scripts[x], scripts[x], function(){
+          loadScript(_scripts[x], scripts[x], base_url, function(){
             // set x to next item
             x++;
             // any more items in array?
@@ -326,160 +315,179 @@ CONFIG_VAR(wifi_mode, CFG_WMODE);
     }
 
     // load script function with callback to handle synchronicity 
-    function loadScript( src, script, callback ){
-      var tried_remote = has_remote_conn;
+    var loadScript = function( src, script, base_url, callback, errback ){
+      var loaded = false;
+      var errored = false;
+      var timeout;
       script = document.createElement('script');
-      script.onerror = function() { 
+      var noload = function(err) {
         // handling error when loading script
-        if(tried_remote){
-          console.log('Could not load script from remote: ' + src);
-          has_remote_conn = false;
-          loadScript(src, script, callback)
+        if(!loaded && !errored && errback){
+          errback();
         }
+        errored = true;
       }
+      script.onerror = noload
       script.onload = function(){
-        console.log(src + ' loaded ')
+        loaded = true;
+        delete timeout;
         callback();
       }
-      if(has_remote_conn){
-        script.src = 'http://mirobot.io/assets/mirobot_js/' + src;
-      }else{
-        script.src = src;
-      }
+      script.src = base_url + src;
       document.getElementsByTagName('head')[0].appendChild(script);
-    }  
-    
-    updateWirelessConfig = function(config){
-      wirelessConfig = config;
+      window.setTimeout(noload, 3000);
+    }
+
+    var localApp = function(){
+      console.log('loading local app');
+
+      has_remote_conn = false;
+      var mirobot;
+      var latest_ui_version = undefined;
+      var latest_ui_file = undefined;
+
+      var mirobot_version = 'unknown';
+
+      var el = function(id){
+        return document.getElementById(id);
+      }
+
+      updateWirelessConfig = function(config){
+        wirelessConfig = config;
       
-      var conn = el('wifiConnState');
-      if(wirelessConfig.wan_setting_ip === '0.0.0.0'){
-        conn.innerHTML = '&#10007; Configure WiFi';
-        conn.className = 'connState';
-      }else{
-        conn.innerHTML = '&#10003; Connected to WiFi (' + wirelessConfig.cover_sta_rssi + ')';
-        conn.className = 'connState connected';
-      }
-    }
-
-    var escEvent = function(event, modal){
-      if (event.which === 27) { // 27 == "esc"
-        // hide the dialog
-        hideModal(modal);
-      }
-    }
-
-    var hideModal = function(modal){
-      el(modal).style.display = 'none';
-      // unbind the event
-      document.body.onkeyup = undefined;
-    }
-    
-    var configureWifi = function(e){
-      e.preventDefault();
-      el('wifiFrame').src = '/wireless_en.html';
-      el('wifiConfig').style.display = 'block';
-      el('wifiContent').onclick = function(e){e.stopPropagation()};
-      el('wifiConfig').onclick = function(){hideModal('wifiConfig')};
-      document.body.onkeyup = function(e){ escEvent(e, 'wifiConfig')};
-    }
-    
-    var downloadLatestUIVersion = function(){
-        var hiddenIFrameID = 'hiddenDownloader',
-            iframe = document.getElementById(hiddenIFrameID);
-        if (iframe === null) {
-            iframe = document.createElement('iframe');
-            iframe.id = hiddenIFrameID;
-            iframe.style.display = 'none';
-            document.body.appendChild(iframe);
+        var conn = el('wifiConnState');
+        if(wirelessConfig.wan_setting_ip === '0.0.0.0'){
+          conn.innerHTML = '&#10007; Configure WiFi';
+          conn.className = 'connState';
+        }else{
+          conn.innerHTML = '&#10003; Connected to WiFi (' + wirelessConfig.cover_sta_rssi + ')';
+          conn.className = 'connState connected';
         }
-        iframe.src = latest_ui_file;
-    }
-    
-    var upgradeUI = function(){
-      if(latest_ui_version){
-        el('upgradeUI').style.display = 'block';
-        el('upgradeUIContent').onclick = function(e){e.stopPropagation()};
-        el('upgradeUI').onclick = function(){hideModal('upgradeUI')};
-      document.body.onkeyup = function(e){ escEvent(e, 'upgradeUI')};
       }
-    }
-    
-    var setVersions = function(){
-      var versionString = "Firmware version: " + mirobot_version + " | UI version: " + ui_version;
-      if(latest_ui_version && latest_ui_version > ui_version){
-        versionString += ' <a href="#" onclick="upgradeUI();return false;">Upgrade</a>';
-      }
-      el('version').innerHTML = versionString;
-    }
 
-    var getVersion = function(){
-      mirobot.version(function(state, msg){
-        if(msg.msg){
-          mirobot_version = msg.msg;
+      var escEvent = function(event, modal){
+        if (event.which === 27) { // 27 == "esc"
+          // hide the dialog
+          hideModal(modal);
         }
-        setVersions();
-      });
-    }
+      }
+
+      var hideModal = function(modal){
+        el(modal).style.display = 'none';
+        // unbind the event
+        document.body.onkeyup = undefined;
+      }
     
-    var checkUIVersion = function(){
-      if(has_remote_conn){
-        $.ajax("https://api.github.com/repos/bjpirt/mirobot-ui/releases", {
-          success: function(res){
-            if(res.length > 0){
-              latest_ui_version = res[0].tag_name;
-              if(res[0].assets.length > 0){
-                for(var i in res[0].assets){
-                  if(res[0].assets[i].name === 'mirobot.bin'){
-                    latest_ui_file = res[0].assets[i].browser_download_url;
-                  }
-                }
-              }
-              setVersions();
-            }
+      var configureWifi = function(e){
+        e.preventDefault();
+        el('wifiFrame').src = '/wireless_en.html';
+        el('wifiConfig').style.display = 'block';
+        el('wifiContent').onclick = function(e){e.stopPropagation()};
+        el('wifiConfig').onclick = function(){hideModal('wifiConfig')};
+        document.body.onkeyup = function(e){ escEvent(e, 'wifiConfig')};
+      }
+    
+      var downloadLatestUIVersion = function(){
+          var hiddenIFrameID = 'hiddenDownloader',
+              iframe = document.getElementById(hiddenIFrameID);
+          if (iframe === null) {
+              iframe = document.createElement('iframe');
+              iframe.id = hiddenIFrameID;
+              iframe.style.display = 'none';
+              document.body.appendChild(iframe);
           }
+          iframe.src = latest_ui_file;
+      }
+    
+      var upgradeUI = function(){
+        if(latest_ui_version){
+          el('upgradeUI').style.display = 'block';
+          el('upgradeUIContent').onclick = function(e){e.stopPropagation()};
+          el('upgradeUI').onclick = function(){hideModal('upgradeUI')};
+        document.body.onkeyup = function(e){ escEvent(e, 'upgradeUI')};
+        }
+      }
+    
+      var setVersions = function(){
+        var versionString = "Firmware version: " + mirobot_version + " | UI version: " + ui_version;
+        if(latest_ui_version && latest_ui_version > ui_version){
+          versionString += ' <a href="#" onclick="upgradeUI();return false;">Upgrade</a>';
+        }
+        el('version').innerHTML = versionString;
+      }
+
+      var getVersion = function(){
+        mirobot.version(function(state, msg){
+          if(msg.msg){
+            mirobot_version = msg.msg;
+          }
+          setVersions();
         });
       }
-    }
     
-    var initProgram = function(){
-      var host;
-      if(window.location.hash !== '' && window.location.hash.match(/#m=/)){
-        host = window.location.hash.replace('#m=', '')
-      }else{
-        host = window.location.hostname;
-      }
-      mirobot = new Mirobot('ws://' + host + ':8899/websocket');
-      var builder = new Builder($('#code'), mirobot);
-
-      var mirobotHandler = function(state){
-        var conn = $('#miroConnState');
-        if(state === 'connected'){
-          if(mirobot_version === 'unknown'){
-            window.setTimeout(getVersion, 1000);
-          }
-          $(conn).html('&#10003; Connected to Mirobot');
-          $(conn).addClass('connected');
-        }else if(state === 'disconnected'){
-          $(conn).html('&#10007; Reconnecting to Mirobot');
-          $(conn).removeClass('connected');
+      var checkUIVersion = function(){
+        if(has_remote_conn){
+          $.ajax("https://api.github.com/repos/bjpirt/mirobot-ui/releases", {
+            success: function(res){
+              if(res.length > 0){
+                latest_ui_version = res[0].tag_name;
+                if(res[0].assets.length > 0){
+                  for(var i in res[0].assets){
+                    if(res[0].assets[i].name === 'mirobot.bin'){
+                      latest_ui_file = res[0].assets[i].browser_download_url;
+                    }
+                  }
+                }
+                setVersions();
+              }
+            }
+          });
         }
       }
+    
+      var initProgram = function(){
+        var host;
+        if(window.location.hash !== '' && window.location.hash.match(/#m=/)){
+          host = window.location.hash.replace('#m=', '')
+        }else{
+          host = window.location.hostname;
+        }
+        mirobot = new Mirobot('ws://' + host + ':8899/websocket');
+        var builder = new Builder($('#code'), mirobot);
+
+        var mirobotHandler = function(state){
+          var conn = $('#miroConnState');
+          if(state === 'connected'){
+            if(mirobot_version === 'unknown'){
+              window.setTimeout(getVersion, 1000);
+            }
+            $(conn).html('&#10003; Connected to Mirobot');
+            $(conn).addClass('connected');
+          }else if(state === 'disconnected'){
+            $(conn).html('&#10007; Reconnecting to Mirobot');
+            $(conn).removeClass('connected');
+          }
+        }
       
-      checkUIVersion();
+        checkUIVersion();
       
-      mirobot.addListener(mirobotHandler);
+        mirobot.addListener(mirobotHandler);
+      }
+
+      LoadScripts(['jquery-custom-min.js', 'jquery-sortable.js', 'mirobot.js', 'builder.js'], '/', function(){
+        initProgram();
+      });
+
+      updateWirelessConfig(wirelessConfig);
+      el('wifiConnState').onclick = configureWifi;
+      setVersions();
     }
 
     window.onload = function(){
-      LoadScripts(function(){
-        initProgram();
-      });
+      loadScript('test.js', undefined, remote_base, function(){
+        loadScript('bootstrap.js', undefined, remote_base, function(){}, localApp);
+      }, localApp);
     }
-
-    updateWirelessConfig(wirelessConfig);
-    el('wifiConnState').onclick = configureWifi;
-    setVersions();
   </script>
 </body>
 </html>
