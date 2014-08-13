@@ -15,6 +15,8 @@ $output_dir = 'out'
 $dist_dir = 'dist'
 
 def squish_file(input)
+  # Don't squish site survey because this removes the tag we want
+  return input if input =~ /CONFIG_VAR\(survey_cmd, CFG_SURVEY\)/
   doc = Nokogiri::HTML(input)
   # Compress all of the inline scripts
   doc.xpath('//script').each do |s|
