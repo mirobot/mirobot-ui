@@ -1,4 +1,4 @@
-var Instance = function(fn, el, mirobot){
+var FnInstance = function(fn, el, mirobot){
   this.fn = fn;
   this.el = el;
   this.mirobot = mirobot;
@@ -6,7 +6,7 @@ var Instance = function(fn, el, mirobot){
   this.children = []
 }
 
-Instance.prototype = {
+FnInstance.prototype = {
   run: function(children){
     var self = this;
     if(self.fn){
@@ -25,7 +25,7 @@ Instance.prototype = {
     }else if(state === 'complete'){
       $(this.el).removeClass('active');
     }
-    if(this.parent){
+    if(this.parent && this.parent.el){
       this.parent.updateState(state);
     }
   },
@@ -36,9 +36,9 @@ Instance.prototype = {
   args: function(){
     var self = this;
     var args ={}
-    $.each(this.fn.content, function(i, item){
+    snack.each(this.fn.content, function(item){
       if(typeof item === 'object'){
-        args[item.name] = $(self.el).find('[name='+ item.name + ']')[0].value;
+        args[item.name] = self.el.querySelector('[name='+ item.name + ']').value;
       }
     });
     return args;
@@ -52,7 +52,8 @@ var Builder = function(el, mirobot){
   this.init();
   this.fns = {};
   this.paused = false;
-  $.each(this.functions, function(i, f){
+
+  snack.each(this.functions, function(f){
     self.fns[f.name] = f;
   });
 }
@@ -63,68 +64,17 @@ Builder.prototype = {
     var self = this;
     var adjustment;
     this.el.addClass('editor');
-    var left = $('<div class="left container"><h2>Toolbox</h2></div>');
-    this.functionList = $('<ol class="functionList"></ol>');
-    left.append(this.functionList);
-    var right = $('<div class="right container"><h2>Program</h2></div>');
-    this.program = $('<ol class="program"></ol>');
-    right.append(this.program);
-    this.program.sortable({
-      group: 'main',
-      nested: true,
-      vertical: true,
-      pullPlaceholder: false,
-      exclude: 'input,select',
-
-      // set item relative to cursor position
-      onDragStart: function (item, container, _super) {
-        var offset = item.offset(),
-        pointer = container.rootGroup.pointer
-
-        adjustment = {
-          left: pointer.left - offset.left,
-          top: pointer.top - offset.top
-        }
-
-        if(!container.options.drop){
-          item.clone().insertAfter(item)
-        }
-        
-        _super(item, container)
-      },
-      onDrag: function (item, position) {
-        item.css({
-          left: position.left - adjustment.left,
-          top: position.top - adjustment.top
-        })
-      },
-      onCancel: function (item, container, _super) {
-        item.remove();
-      }
-    });
-    this.functionList.sortable({
-      group: 'main',
-      drop: false,
-      exclude: 'input,select'
-    });
+    this.el[0].innerHTML = this.mainUI;
     
-    this.el.append(left);
-    this.el.append(right);
-    this.runner = $('<button class="run">&#9654; Run</button>');
-    this.pause = $('<button class="pause">&#10074;&#10074; Pause</button>');
-    this.pause.on('click', function(e){self.pauseProgram(e)});
-    this.pause.hide();
-    this.stop = $('<button class="stop">&#9724; Stop</button>');
-    this.clear = $('<button class="clear">&#10006; Clear</button>');
-    this.runner.on('click', function(e){self.runProgram(e)});
-    this.stop.on('click', function(e){self.stopProgram(e)});
-    this.clear.on('click', function(e){self.clearProgram(e)});
+    this.runner = $('.editor .run');
+    this.pause = $('.editor .pause');
+    this.stop = $('.editor .stop');
+    this.clear = $('.editor .clear');
+    this.runner.attach('click', function(e){self.runProgram(e)});
+    this.stop.attach('click', function(e){self.stopProgram(e)});
+    this.clear.attach('click', function(e){self.clearProgram(e)});
     this.mirobot.addListener(function(state){ self.mirobotHandler(state) });
-    right.append(this.runner);
-    right.append(this.pause);
-    right.append(this.stop);
-    right.append(this.clear);
-    
+
     this.addFunctions();
   },
   mirobotHandler: function(state){
@@ -135,43 +85,40 @@ Builder.prototype = {
   },
   addFunctions: function(){
     var self = this;
-    $.each(this.functions, function(i, f){
-      var fn = $('<li class="function fn-' + f.name + '" data-fntype="' + f.name + '" draggable="true"></li>');
+    snack.each(this.functions, function(i, f){
+      f = self.functions[f];
+      var fn = '<li class="function fn-' + f.name + ' draggable" data-fntype="' + f.name + '">';
       for(var i in f.content){
         if(typeof(f.content[i]) === 'string'){
-          fn.append('<span> ' + f.content[i] + ' </span>');
+          fn += '<span> ' + f.content[i] + ' </span>';
         }else if(typeof(f.content[i]) === 'object'){
           if(f.content[i].input === 'number'){
-            fn.append('<input type="text" size="4" name="' + f.content[i].name + '" value="' + f.content[i].default + '" />');
+            fn += '<input type="number" size="4" name="' + f.content[i].name + '" value="' + f.content[i].default + '" />';
           }else if(f.content[i].input === 'option'){
-            var select = $('<select name="'+ f.content[i].name +'"/> ');
-            select.on('change', function(e){
-              var el = $(this);
-              el.find("option").each(function(){
-                if ($(this).text() == el.val()) {
-                    $(this).attr("selected",true);
-                } else {
-                    $(this).removeAttr("selected");
-                }
-              });
-            });
+            var select = '<select name="'+ f.content[i].name +'">';
             for(var j in f.content[i].values){
-              var opt = $('<option value="' + f.content[i].values[j] + '">' + f.content[i].values[j] + '</option>');
+              select += '<option value="' + f.content[i].values[j] + '"';
               if(f.content[i].default === f.content[i].values[j]){
-                opt.attr('selected', 'selected');
+                select += 'selected="selected"';
               }
-              select.append(opt);
+              select += '>' + f.content[i].values[j] + '</option>';
             }
-            fn.append(select);
+            select += '</select>';
+            fn += select;
           }
         }
       }
       
       if(f.type === 'parent'){
-        fn.append('<ol></ol>');
+        fn += '<ol><li class="end" style="display:hidden"></li></ol>';
       }
-
-      self.el.find('.functionList').append(fn);
+      fn += '</li>';
+      $('.editor .functionList')[0].innerHTML += fn;
+    });
+    $('.functionList li.draggable').draggableList({
+      target: 'ol.program',
+      placeholder: '<li class="placeholder"/>',
+      copy: true
     });
   },
   runProgram: function(){
@@ -180,8 +127,8 @@ Builder.prototype = {
         console.log('resumed');
       });
     }else{
-      this.prog = new Instance(null, null, null);
-      this.generate(this.el.find('ol.program'), this.prog);
+      this.prog = new FnInstance(null, null, null);
+      this.generate($('.editor ol.program')[0], this.prog);
       this.prog.run()
     }
     this.pause.show();
@@ -208,16 +155,23 @@ Builder.prototype = {
   },
   clearProgram: function(){
     this.stopProgram();
-    this.el.find('ol.program li').remove();
+    $('.editor ol.program li.function').remove();
   },
   generate: function(el, parent){
     var self = this;
-    $(el).children('li').each(function(i, f){
-      var fn = self.fns[$(f).data('fntype')];
-      var inst = new Instance(fn, f, self.mirobot);
-      parent.addChild(inst);
-      if(fn.type === 'parent'){
-        self.generate($(f).children('ol'), inst);
+    snack.each(el.childNodes, function(el){
+      if(el.nodeName.toLowerCase() === 'li' && el.className.match(/function/) && el.dataset.fntype){
+        var fn = self.fns[el.dataset.fntype];
+        var inst = new FnInstance(fn, el, self.mirobot);
+        parent.addChild(inst);
+        if(fn.type === 'parent'){
+          var children = el.childNodes;
+          for(var i = 0; i< children.length; i++){
+            if(children[i].nodeName.toLowerCase() === 'ol'){
+              self.generate(children[i], inst);
+            }
+          }
+        }
       }
     });
   },
@@ -284,3 +238,16 @@ Builder.prototype = {
     }
   ]
 }
+
+
+
+Builder.prototype.mainUI = '<div class="left container"><h2>Toolbox</h2>\
+<ol class="functionList"></ol>\
+</div>\
+<div class="right container"><h2>Program</h2>\
+<ol class="program">\
+<li class="end" style="display:hidden"></li>\
+</ol>\
+<button class="run">&#9654; Run</button><button class="pause" style="display:none;">&#10074;&#10074; Pause</button><button class="stop">&#9724; Stop</button><button class="clear">&#10006; Clear</button>\
+</div>\
+';

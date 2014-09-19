@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <title>Mirobot Control</title>
-
+  <meta name="viewport" content="width=900, user-scalable=no">
   <style>
     body {
       background-color: #fff;
@@ -45,6 +45,9 @@
     .editor .functionList{
       vertical-align:top;
       padding:10px;
+    }
+    .editor input[type='number']{
+      width:50px;
     }
     .editor .container h2{
       background:#888;
@@ -288,6 +291,11 @@ CONFIG_VAR(wifi_mode, CFG_WMODE);
  
   </script>
   <script>
+    document.addEventListener('touchmove', function(e) {
+      e.preventDefault();
+    }, false);
+
+    var $;
     var has_remote_conn = true;
     var remote_base = 'http://mirobot.io/assets/mirobot_js/';
     var ui_version = '{{timestamp}}';
@@ -404,7 +412,7 @@ CONFIG_VAR(wifi_mode, CFG_WMODE);
           el('upgradeUI').style.display = 'block';
           el('upgradeUIContent').onclick = function(e){e.stopPropagation()};
           el('upgradeUI').onclick = function(){hideModal('upgradeUI')};
-        document.body.onkeyup = function(e){ escEvent(e, 'upgradeUI')};
+          document.body.onkeyup = function(e){ escEvent(e, 'upgradeUI')};
         }
       }
     
@@ -427,19 +435,18 @@ CONFIG_VAR(wifi_mode, CFG_WMODE);
     
       var checkUIVersion = function(){
         if(has_remote_conn){
-          $.ajax("https://api.github.com/repos/bjpirt/mirobot-ui/releases", {
-            success: function(res){
-              if(res.length > 0){
-                latest_ui_version = res[0].tag_name;
-                if(res[0].assets.length > 0){
-                  for(var i in res[0].assets){
-                    if(res[0].assets[i].name === 'mirobot.bin'){
-                      latest_ui_file = res[0].assets[i].browser_download_url;
-                    }
+          snack.request({url: "https://api.github.com/repos/bjpirt/mirobot-ui/releases"}, function(err, res){
+            if(!err){
+              res = JSON.parse(res);
+              latest_ui_version = res[0].tag_name;
+              if(res[0].assets.length > 0){
+                for(var i in res[0].assets){
+                  if(res[0].assets[i].name === 'mirobot.bin'){
+                    latest_ui_file = res[0].assets[i].browser_download_url;
                   }
                 }
-                setVersions();
               }
+              setVersions();
             }
           });
         }
@@ -461,11 +468,11 @@ CONFIG_VAR(wifi_mode, CFG_WMODE);
             if(mirobot_version === 'unknown'){
               window.setTimeout(getVersion, 1000);
             }
-            $(conn).html('&#10003; Connected to Mirobot');
-            $(conn).addClass('connected');
+            conn[0].innerHTML = '&#10003; Connected to Mirobot';
+            conn.addClass('connected');
           }else if(state === 'disconnected'){
-            $(conn).html('&#10007; Reconnecting to Mirobot');
-            $(conn).removeClass('connected');
+            conn[0].innerHTML = '&#10007; Reconnecting to Mirobot';
+            conn.removeClass('connected');
           }
         }
       
@@ -474,7 +481,8 @@ CONFIG_VAR(wifi_mode, CFG_WMODE);
         mirobot.addListener(mirobotHandler);
       }
 
-      LoadScripts(['jquery-custom-min.js', 'jquery-sortable.js', 'mirobot.js', 'builder.js'], '/', function(){
+      LoadScripts(['snack.js', 'mirobot.js', 'builder.js', 'snack.sortableList.js'], '/', function(){
+        $ = snack.wrap;
         initProgram();
       });
 
