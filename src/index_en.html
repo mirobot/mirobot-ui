@@ -300,8 +300,16 @@ CONFIG_VAR(wifi_mode, CFG_WMODE);
     var has_remote_conn = true;
     var remote_base = 'http://mirobot.io/assets/mirobot_js/';
     var ui_version = '{{timestamp}}';
+    var hashConfig = {};
     if(ui_version === ('{{time' + 'stamp}}')){
       ui_version = '20140723'; //So we can use the raw source for testing
+    }
+    
+    if(window.location.hash !== ''){
+      window.location.hash.replace('#', '').split('&').map(function(el){
+        var split = el.split('=');
+        hashConfig[split[0]] = split[1];
+      });
     }
     
     var LoadScripts = function (_scripts, base_url, done) {
@@ -455,14 +463,9 @@ CONFIG_VAR(wifi_mode, CFG_WMODE);
           });
         }
       }
-    
+      
       var initProgram = function(){
-        var host;
-        if(window.location.hash !== '' && window.location.hash.match(/#m=/)){
-          host = window.location.hash.replace('#m=', '')
-        }else{
-          host = window.location.hostname;
-        }
+        var host = hashConfig['m'] || window.location.hostname;
         mirobot = new Mirobot('ws://' + host + ':8899/websocket');
         var builder = new Builder($('#code'), mirobot);
 
