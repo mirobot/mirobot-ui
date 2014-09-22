@@ -226,6 +226,14 @@
       <iframe src="" id="wifiFrame"></iframe>
     </div>
   </div>
+  <div id="wsMsg" class="modal" style="display:none">
+    <div class="content">
+      <h3>Your browser does not support Mirobot</h3>
+      <p>Mirobot uses a feature called WebSockets in order to control it from your browser.</p>
+      <p>Unfortunately your web browser does not support this.</p>
+      <p>Any recent version of the major browsers should work without problems. If you're not sure what to use, <a href="https://www.google.com/chrome/browser/">Google Chrome</a> is a good start.</p>
+    </div>
+  </div>
   <div id="upgradeUI" class="modal" style="display:none">
     <div class="content" id="upgradeUIContent">
       <h3>Upgrade the Mirobot UI</h3>
@@ -498,11 +506,20 @@ CONFIG_VAR(wifi_mode, CFG_WMODE);
       setVersions();
     }
 
-    window.onload = function(){
-      loadScript('test.js', undefined, remote_base, function(){
-        loadScript('bootstrap.js', undefined, remote_base, function(){}, localApp);
-      }, localApp);
+    if(typeof(WebSocket) !== "undefined"){
+      if(hashConfig['l'] === 'true'){
+        localApp();
+      }else{
+        window.onload = function(){
+          loadScript('test.js', undefined, remote_base, function(){
+            loadScript('bootstrap.js', undefined, remote_base, function(){}, localApp);
+          }, localApp);
+        }
+      }
+    }else{
+      document.getElementById('wsMsg').style.display = 'block';
     }
+
   </script>
 </body>
 </html>
