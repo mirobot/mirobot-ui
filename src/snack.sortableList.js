@@ -13,11 +13,12 @@ snack.wrap.define('draggableList', function(config){
   }
   
   // Works out if a point is within an element
-  var intersect = function(x, y, element){
-    return x > element.offsetLeft &&
-    x < element.offsetLeft + element.offsetWidth &&
-    y > element.offsetTop &&
-    x < element.offsetTop + element.offsetHeight
+  var intersect = function(x, y, el){
+    var rect = el.getBoundingClientRect();
+    return x >= rect.left &&
+           x <= rect.right &&
+           y >= rect.top &&
+           y <= rect.bottom;
   }
   
   var movePlaceholder = function(event){
@@ -30,12 +31,13 @@ snack.wrap.define('draggableList', function(config){
     
     var target = snack.wrap(config.target)[0];
     // If we're over the drop area, work out where to put the placeholder
-    if(intersect(dragEl.offsetLeft + dragEl.offsetWidth/2, dragEl.offsetTop + dragEl.offsetHeight/2, target)){
+    var dragRect = dragEl.getBoundingClientRect();
+    if(intersect(event.pageX, event.pageY, target)){
       // find the li that's nearest to the cursor and insert placeholder bofore it
       var targets = Array.prototype.slice.call( target.getElementsByTagName('li'), 0 ).filter(function(el){ return el !== dragEl; });
       // calculate vertical distances
       var dists = targets.map(function(t){
-        return [t, Math.abs((dragEl.offsetTop + dragEl.offsetHeight/2)- t.offsetTop)];
+        return [t, Math.abs(event.pageY - t.getBoundingClientRect().top)];
       });
       // find the nearest
       var nearest = dists.reduce(function(prev, curr){
@@ -43,6 +45,7 @@ snack.wrap.define('draggableList', function(config){
       });
       // insert placeholder before
       nearest[0].parentNode.insertBefore(placeholder, nearest[0]);
+      placeholder.style.height = dragEl.getBoundingClientRect().height - 22 + 'px';
     }else{
       if(placeholder){
         snack.wrap(placeholder).remove();
@@ -80,6 +83,7 @@ snack.wrap.define('draggableList', function(config){
     if(!dragging){ return; }
     setPos(dragEl, event.pageX - offset.x, event.pageY - offset.y);
     movePlaceholder(event);
+    event.preventDefault();
   }
   
   // Drop it in place
