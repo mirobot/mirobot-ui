@@ -143,8 +143,6 @@ snack.wrap.define('draggableList', function(config){
         drag(event);
       }
     }
-    event.stopPropagation();
-    event.preventDefault();
   }
   
   // Attach handlers

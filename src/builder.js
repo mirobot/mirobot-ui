@@ -65,6 +65,19 @@ Builder.prototype = {
     var adjustment;
     this.el.addClass('editor');
     this.el[0].innerHTML = this.mainUI;
+    this.setSize();
+    window.addEventListener('resize', function(){self.setSize();});
+
+    // Stop the whole page scrolling in touch browsers except in the program
+    document.addEventListener('touchmove', function(e) {
+      var el = e.target;
+      while(el = el.parentElement){
+        if(el.id === 'program'){
+          return;
+        }
+      }
+      e.preventDefault();
+    }, false);
     
     this.runner = $('.editor .run');
     this.pause = $('.editor .pause');
@@ -76,6 +89,19 @@ Builder.prototype = {
     this.mirobot.addListener(function(state){ self.mirobotHandler(state) });
 
     this.addFunctions();
+  },
+  setSize: function(){
+    var w = window,
+      d = document,
+      e = d.documentElement,
+      g = d.getElementsByTagName('body')[0],
+      x = w.innerWidth || e.clientWidth || g.clientWidth,
+      y = w.innerHeight|| e.clientHeight|| g.clientHeight;
+    var right = this.el[0].getElementsByClassName('right')[0];
+    var prog = this.el[0].getElementsByClassName('programWrapper')[0];
+    var buttons = this.el[0].getElementsByClassName('buttons')[0];
+    right.style.height = y - right.offsetTop - 27 + 'px';
+    prog.style.height = buttons.offsetTop - prog.offsetTop + 'px';
   },
   mirobotHandler: function(state){
     if(state === 'program_complete'){
@@ -241,9 +267,9 @@ Builder.prototype.mainUI = '<div class="left container"><h2>Toolbox</h2>\
 <ol class="functionList"></ol>\
 </div>\
 <div class="right container"><h2>Program</h2>\
-<ol class="program">\
-<li class="end" style="display:hidden"></li>\
+<div class="programWrapper"><ol class="program" id="program">\
+<li class="end" style="display:hidden"></li></div>\
 </ol>\
-<button class="run">&#9654; Run</button><button class="pause" style="display:none;">&#10074;&#10074; Pause</button><button class="stop">&#9724; Stop</button><button class="clear">&#10006; Clear</button>\
+<div class="buttons"><button class="run">&#9654; Run</button><button class="pause" style="display:none;">&#10074;&#10074; Pause</button><button class="stop">&#9724; Stop</button><button class="clear">&#10006; Clear</button></div>\
 </div>\
 ';

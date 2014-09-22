@@ -59,6 +59,16 @@
       border:1px solid #888;
       margin-left:310px;
       max-width:600px;
+      position:relative;
+    }
+    .editor .buttons{
+      position:absolute;
+      padding:0;
+      bottom:0;
+      width:100%;
+    }
+    .editor .programWrapper{
+      overflow:auto;
     }
     .editor button{
       color:#FFF;
@@ -104,9 +114,12 @@
     .editor .program{
       overflow:hidden;
       min-width:300px;
-      min-height:500px;
+      min-height:100%;
       vertical-align:top;
       padding:10px;
+    }
+    .editor .programWrapper{
+      overflow:auto;
     }
     .editor .function{
       background:#FFF;
@@ -299,10 +312,6 @@ CONFIG_VAR(wifi_mode, CFG_WMODE);
  
   </script>
   <script>
-    // Stop the whole page scrolling in touch browsers
-    document.addEventListener('touchmove', function(e) {
-      e.preventDefault();
-    }, false);
 
     var $;
     var has_remote_conn = true;
