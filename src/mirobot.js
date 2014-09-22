@@ -110,7 +110,9 @@ Mirobot.prototype = {
 
   send: function(msg, cb){
     msg.id = Math.random().toString(36).substr(2, 10)
-    this.cbs[msg.id] = cb;
+    if(cb){
+      this.cbs[msg.id] = cb;
+    }
     if(msg.arg){ msg.arg = msg.arg.toString(); }
     if(['stop', 'pause', 'resume', 'ping', 'version'].indexOf(msg.cmd) >= 0){
       console.log(msg);

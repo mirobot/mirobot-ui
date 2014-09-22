@@ -291,6 +291,7 @@ CONFIG_VAR(wifi_mode, CFG_WMODE);
  
   </script>
   <script>
+    // Stop the whole page scrolling in touch browsers
     document.addEventListener('touchmove', function(e) {
       e.preventDefault();
     }, false);
@@ -345,9 +346,12 @@ CONFIG_VAR(wifi_mode, CFG_WMODE);
       document.getElementsByTagName('head')[0].appendChild(script);
       window.setTimeout(noload, 3000);
     }
+    
+    // In case console logging kills the browser
+    if(typeof window.console === 'undefined'){ window.console = {log: function(){}}; }
 
     var localApp = function(){
-      console.log('loading local app');
+      console.log('Loading local app');
 
       has_remote_conn = false;
       var mirobot;

@@ -123,9 +123,7 @@ Builder.prototype = {
   },
   runProgram: function(){
     if(this.paused){
-      this.mirobot.resume(function(){
-        console.log('resumed');
-      });
+      this.mirobot.resume();
     }else{
       this.prog = new FnInstance(null, null, null);
       this.generate($('.editor ol.program')[0], this.prog);
@@ -139,7 +137,6 @@ Builder.prototype = {
     var self = this;
     this.paused = true;
     this.mirobot.pause(function(){
-      console.log('paused');
       self.runner.show();
       self.pause.hide();
     });
@@ -150,7 +147,6 @@ Builder.prototype = {
       self.runner.show();
       self.pause.hide();
       self.paused = false;
-      console.log('stopped');
     });
   },
   clearProgram: function(){
