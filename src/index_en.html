@@ -311,7 +311,11 @@ CONFIG_VAR(wifi_mode, CFG_WMODE);
 }();
  
   </script>
-  <script>
+  <script type="text/javascript" src="snack.js"></script>
+  <script type="text/javascript" src="mirobot.js"></script>
+  <script type="text/javascript" src="builder.js"></script>
+  <script type="text/javascript" src="snack.sortableList.js"></script>
+  <script type="text/javascript">
 
     var $;
     var has_remote_conn = true;
@@ -504,12 +508,13 @@ CONFIG_VAR(wifi_mode, CFG_WMODE);
       
         mirobot.addListener(mirobotHandler);
       }
-
+/*
       LoadScripts(['snack.js', 'mirobot.js', 'builder.js', 'snack.sortableList.js'], '/', function(){
-        $ = snack.wrap;
-        initProgram();
+        
       });
-
+*/
+      $ = snack.wrap;
+      initProgram();
       updateWirelessConfig(wirelessConfig);
       el('wifiConnState').onclick = configureWifi;
       setVersions();

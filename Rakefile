@@ -4,7 +4,7 @@ require 'uglifier'
 require 'cssminify'
 require 'bindata'
 
-task :default => [:build]
+task :default => [:flatten]
 
 $ugly_options = {
   :comments => :none
@@ -14,14 +14,16 @@ $input_dir = 'src'
 $output_dir = 'out'
 $dist_dir = 'dist'
 
-def squish_file(input)
+def squish_file(input, options = {})
   # Don't squish site survey because this removes the tag we want
   return input if input =~ /CONFIG_VAR\(survey_cmd, CFG_SURVEY\)/
   doc = Nokogiri::HTML(input)
   # Compress all of the inline scripts
   doc.xpath('//script').each do |s|
     unless (s.content.include?('/*<%') && s.content.include?('%>*/'))
-      s.content = Uglifier.new({:comments => :all}).compile(s.content) unless s['src']
+      src = (options[:flatten] && s['src'] ? File.read("src/#{s['src']}") : s.content)
+      s.content = Uglifier.new($ugly_options).compile(src)
+      s.delete('src') if options[:flatten]
     end
   end
   # Remove whitespace from the html
@@ -46,50 +48,28 @@ task :clean_output do
 end
 
 task :flatten do
-  puts "Building mirobot html file"
+  puts "Building single mirobot html file"
   Rake::Task["clean_output"].execute
   # Combine all of the html and javascript into one file
   # Find all of the html files to compress
   Dir.glob('src/*.html').each do |f|
-    outfile = f.gsub($input_dir, $output_dir)
     # Read the file
     file = File.read(f)
-    # Parse it
-    doc = Nokogiri::HTML(file)
-    # Extract all of the scripts in order
-    js = ['']
-    doc.xpath('//script').each do |s|
-      js << (s['src'] ? File.read("src/#{s['src']}") : s.content)
-      s.remove
-    end
-    # Re-inser the scripts at the end of the document
-    new_script = Nokogiri::XML::Node.new("script", doc)
-    new_script.content = Uglifier.new($ugly_options).compile(js.join("\n"))
-    doc.css('body').first.children.last.add_next_sibling(new_script)
-    # Remove whitespace from the html
-    doc.xpath('//text()').each do |node|
-      node.remove unless node.content=~/\S/
-    end
-    # Minify the CSS
-    css = ['']
-    doc.xpath('//style').each do |c|
-      css << c.content
-      c.remove
-    end
-    if css.length > 1
-      new_style = Nokogiri::XML::Node.new("style", doc)
-      new_style.content = CSSminify.compress(css.join("\n"))
-      doc.xpath('//head').first.children.last.add_next_sibling(new_style)
-    end
+    # Add the timestamp for versioning
+    file = add_timestamp(file)
+    # Deside where to put it
+    outfile = f.gsub($input_dir, $output_dir)
+    # Flatten and compress it
+    output = squish_file(file, :flatten => true)
     # Write to file
     File.open(outfile, 'w') { |file|
-      file.write(doc)
+      file.write(output)
     }
   end
 end
 
 task :dist do
-  Rake::Task["build"].execute
+  Rake::Task["flatten"].execute
   Rake::Task["create_bin"].execute
 end
 
@@ -101,9 +81,13 @@ task :build do
   puts "Building mirobot UI files"
   Rake::Task["clean_output"].execute
   Dir.glob('src/*').each do |f|
+    # Read the file
     file = File.read(f)
+    # Add the timestamp for versioning
     file = add_timestamp(file)
+    # Deside where to put it
     outfile = f.gsub($input_dir, $output_dir)
+    # Flatten and compress it
     if f =~ /.*\.html\z/
       output = squish_file(file)
     elsif f =~ /.*\.js\z/
@@ -111,6 +95,7 @@ task :build do
     elsif f =~ /.*\.css\z/
       output = CSSminify.compress(file)
     end
+    # Write to file
     File.open(outfile, 'w') { |file|
       file.write(output)
     }
