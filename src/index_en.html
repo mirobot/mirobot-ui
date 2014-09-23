@@ -468,9 +468,11 @@ CONFIG_VAR(wifi_mode, CFG_WMODE);
     
       var checkUIVersion = function(){
         if(has_remote_conn){
-          snack.request({url: "https://api.github.com/repos/bjpirt/mirobot-ui/releases"}, function(err, res){
-            if(!err){
-              res = JSON.parse(res);
+          var xhr = new XMLHttpRequest();
+          
+          xhr.onreadystatechange = function(){
+            if(xhr.readyState === 4 && xhr.status === 200){
+              var res = JSON.parse(xhr.response);
               latest_ui_version = res[0].tag_name;
               if(res[0].assets.length > 0){
                 for(var i in res[0].assets){
@@ -481,7 +483,10 @@ CONFIG_VAR(wifi_mode, CFG_WMODE);
               }
               setVersions();
             }
-          });
+          }
+          
+          xhr.open('GET', 'https://api.github.com/repos/bjpirt/mirobot-ui/releases', true);
+          xhr.send();
         }
       }
       
