@@ -110,6 +110,11 @@ Builder.prototype = {
       this.pause.hide();
     }
   },
+  showHints: function(){
+    $('.editor .programWrapper ol').each(function(el){
+      el.getElementsByClassName('hint')[0].style.display = (el.children.length === 1 ? 'block' : 'none')
+    });
+  },
   addFunctions: function(){
     var self = this;
     snack.each(this.functions, function(i, f){
@@ -137,7 +142,7 @@ Builder.prototype = {
       }
       
       if(f.type === 'parent'){
-        fn += '<ol><li class="end" style="display:hidden"></li></ol>';
+        fn += '<ol><li class="end"><div class="hint">Drag functions into here!</div></li></li></ol>';
       }
       fn += '</li>';
       $('.editor .functionList')[0].innerHTML += fn;
@@ -145,7 +150,8 @@ Builder.prototype = {
     $('.functionList li.draggable').draggableList({
       target: 'ol.program',
       placeholder: '<li class="placeholder"/>',
-      copy: true
+      copy: true,
+      ondrag: function(){self.showHints()}
     });
   },
   runProgram: function(){
@@ -269,7 +275,7 @@ Builder.prototype.mainUI = '<div class="left container"><h2>Toolbox</h2>\
 </div>\
 <div class="right container"><h2>Program</h2>\
 <div class="programWrapper"><ol class="program" id="program">\
-<li class="end" style="display:hidden"></li></div>\
+<li class="end"><div class="hint">Drag functions from the left over here!</div></li></div>\
 </ol>\
 <div class="buttons"><button class="run">&#9654; Run</button><button class="pause" style="display:none;">&#10074;&#10074; Pause</button><button class="stop">&#9724; Stop</button><button class="clear">&#10006; Clear</button></div>\
 </div>\

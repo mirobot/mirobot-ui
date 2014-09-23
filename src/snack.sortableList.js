@@ -83,6 +83,7 @@ snack.wrap.define('draggableList', function(config){
     if(!dragging){ return; }
     setPos(dragEl, event.pageX - offset.x, event.pageY - offset.y);
     movePlaceholder(event);
+    config.ondrag && config.ondrag();
     event.preventDefault();
   }
   
