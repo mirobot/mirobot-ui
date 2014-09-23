@@ -84,6 +84,7 @@ Builder.prototype = {
     this.stop = $('.editor .stop');
     this.clear = $('.editor .clear');
     this.runner.attach('click', function(e){self.runProgram(e)});
+    this.pause.attach('click', function(e){self.pauseProgram(e)});
     this.stop.attach('click', function(e){self.stopProgram(e)});
     this.clear.attach('click', function(e){self.clearProgram(e)});
     this.mirobot.addListener(function(state){ self.mirobotHandler(state) });
