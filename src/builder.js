@@ -115,6 +115,12 @@ Builder.prototype = {
       el.getElementsByClassName('hint')[0].style.display = (el.children.length === 1 ? 'block' : 'none')
     });
   },
+  sortLists: function(){
+    var ends = this.el[0].querySelectorAll('.programWrapper li.end')
+    snack.each(ends, function(end){
+      end.parentNode.appendChild(end);
+    });
+  },
   addFunctions: function(){
     var self = this;
     snack.each(this.functions, function(i, f){

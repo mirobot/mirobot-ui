@@ -65,7 +65,17 @@ snack.wrap.define('draggableList', function(config){
     }
   }
   
+  var killEvent = function(e){
+    e.cancelBubble = true;
+    e.stopPropagation();
+    e.preventDefault();
+    e.returnValue = false;
+  }
+
   var startDrag = function(element, event){
+    // Can't stop events bubbling on iOS so resorting to this more manual hack
+    if(event.handled){return;}
+    event.handled = true;
     // Set the currently selected elements as default, otherwise when copied the settings reset
     snack.each(element.getElementsByTagName('option'), function(el){
       el.value === el.parentNode.value ? el.setAttribute("selected", "selected") : el.removeAttribute("selected");
@@ -88,6 +98,7 @@ snack.wrap.define('draggableList', function(config){
     element.parentElement.appendChild(dragEl);
     movePlaceholder(event);
     dragging = true;
+    killEvent(event);
   }
   
   // Called on move to update the position and the placeholder
@@ -96,11 +107,12 @@ snack.wrap.define('draggableList', function(config){
     setPos(dragEl, event.pageX - offset.x, event.pageY - offset.y);
     movePlaceholder(event);
     config.ondrag && config.ondrag();
-    event.preventDefault();
+    killEvent(event);
   }
   
   // Drop it in place
   var stopDrag = function(event){
+    if(!dragging){return;}
     if(movers){
       movers.detach('movers');
       movers = undefined;
@@ -126,6 +138,7 @@ snack.wrap.define('draggableList', function(config){
     dragEl.style.position = '';
     
     snack.wrap(placeholder).remove();
+    killEvent(event);
   }
   
   // Monolithic event handler for all of the events
