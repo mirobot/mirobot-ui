@@ -36,12 +36,26 @@ FnInstance.prototype = {
   args: function(){
     var self = this;
     var args ={}
-    snack.each(this.fn.content, function(item){
-      if(typeof item === 'object'){
-        args[item.name] = self.el.querySelector('[name='+ item.name + ']').value;
-      }
-    });
+    if(this.fn){
+      snack.each(this.fn.content, function(item){
+        if(typeof item === 'object'){
+          args[item.name] = self.el.querySelector('[name='+ item.name + ']').value;
+        }
+      });
+    }
     return args;
+  },
+  toObject: function(){
+    var out = {
+      fn: this.fn ? this.fn.name : 'root',
+      parent: this.fn ? this.fn.type === 'parent' : true,
+      args: this.args(),
+      children: []
+    }
+    if(this.children.length){
+      out.children = this.children.map(function(c){ return c.toObject(); });
+    }
+    return out;
   }
 }
 
@@ -90,6 +104,59 @@ Builder.prototype = {
     this.mirobot.addListener(function(state){ self.mirobotHandler(state) });
 
     this.addFunctions();
+    this.resumeProgram();
+  },
+  supportsLocalStorage: function(){
+    try {
+      return 'localStorage' in window && window['localStorage'] !== null;
+    } catch (e) {
+      return false;
+    }
+  },
+  storeProgram: function(){
+    if(this.supportsLocalStorage()){
+      console.log('storing');
+      var prog = new FnInstance(null, null, null);
+      this.generate($('.editor ol.program')[0], prog);
+      localStorage['mirobot.currentProgram'] = JSON.stringify(prog.toObject());
+    }
+  },
+  resumeProgram: function(){
+    if(this.supportsLocalStorage() && localStorage['mirobot.currentProgram']){
+      var prog = JSON.parse(localStorage['mirobot.currentProgram']);
+      if(prog.fn === 'root' && prog.children && prog.children.length > 0){
+        this.instantiateProgram(prog.children, document.querySelectorAll('.editor .program')[0]);
+        this.showHints();
+        this.sortLists();
+      }
+    }
+  },
+  instantiateProgram: function(fns, el){
+    var self = this;
+    if(fns && fns.length){
+      for(var i = 0; i< fns.length; i++){
+        var newEl = document.querySelectorAll('.functionList .fn-' + fns[i].fn)[0].cloneNode(true);
+        el.appendChild(newEl);
+        for(var arg in fns[i].args){
+          if(fns[i].args.hasOwnProperty(arg)){
+            var input = newEl.querySelector("[name='" + arg + "']");
+            input.value = fns[i].args[arg];
+            console.log(input);
+          }
+        }
+        self.checkForChanges(newEl);
+        snack.wrap(newEl).draggableList({
+          target: 'ol.program',
+          placeholder: '<li class="placeholder"/>',
+          copy: false,
+          ondrag: function(){self.showHints()},
+          onchange: function(){self.storeProgram(); self.sortLists();}
+        });
+        if(fns[i].parent){
+          this.instantiateProgram(fns[i].children, newEl.getElementsByTagName('ol')[0]);
+        }
+      }
+    }
   },
   setSize: function(){
     var w = window,
@@ -119,6 +186,13 @@ Builder.prototype = {
     var ends = this.el[0].querySelectorAll('.programWrapper li.end')
     snack.each(ends, function(end){
       end.parentNode.appendChild(end);
+    });
+  },
+  checkForChanges: function(elem){
+    var self = this;
+    var inputs = elem.querySelectorAll('input, select');
+    snack.each(inputs, function(el){
+      el.addEventListener('change', function(){ self.storeProgram();});
     });
   },
   addFunctions: function(){
@@ -157,7 +231,9 @@ Builder.prototype = {
       target: 'ol.program',
       placeholder: '<li class="placeholder"/>',
       copy: true,
-      ondrag: function(){self.showHints()}
+      ondrag: function(){self.showHints()},
+      onchange: function(){self.storeProgram(); self.sortLists();},
+      onaddelem: function(elem){self.checkForChanges(elem);}
     });
   },
   runProgram: function(){
@@ -191,6 +267,8 @@ Builder.prototype = {
   clearProgram: function(){
     this.stopProgram();
     $('.editor ol.program li.function').remove();
+    this.storeProgram();
+    this.showHints();
   },
   generate: function(el, parent){
     var self = this;

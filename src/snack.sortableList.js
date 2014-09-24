@@ -139,6 +139,8 @@ snack.wrap.define('draggableList', function(config){
     
     snack.wrap(placeholder).remove();
     killEvent(event);
+    config.onchange && config.onchange();
+    config.copy && config.onaddelem && config.onaddelem(dragEl);
   }
   
   // Monolithic event handler for all of the events
