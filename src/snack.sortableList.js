@@ -21,6 +21,18 @@ snack.wrap.define('draggableList', function(config){
            y <= rect.bottom;
   }
   
+  var ancestor = function(el1, el2){
+    if(el1 === el2){
+      return true;
+    }
+    while(el1 = el1.parentElement){
+      if(el1 === el2){
+        return true;
+      }
+    }
+    return false;
+  }
+
   var movePlaceholder = function(event){
     // Create the placeholder if it doesn't exist already
     if(!placeholder){ 
@@ -34,7 +46,7 @@ snack.wrap.define('draggableList', function(config){
     var dragRect = dragEl.getBoundingClientRect();
     if(intersect(event.pageX, event.pageY, target)){
       // find the li that's nearest to the cursor and insert placeholder bofore it
-      var targets = Array.prototype.slice.call( target.getElementsByTagName('li'), 0 ).filter(function(el){ return el !== dragEl; });
+      var targets = Array.prototype.slice.call( target.getElementsByTagName('li'), 0 ).filter(function(el){ return !ancestor(el, dragEl) });
       // calculate vertical distances
       var dists = targets.map(function(t){
         return [t, Math.abs(event.pageY - t.getBoundingClientRect().top)];
