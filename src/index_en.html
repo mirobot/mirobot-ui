@@ -206,6 +206,7 @@
       width:100%;
       height:100%;
       text-align:center;
+      z-index:100000;
     }
     .modal .content{
       background-color:#FFF;
@@ -452,21 +453,23 @@ CONFIG_VAR(wifi_mode, CFG_WMODE);
           iframe.src = latest_ui_file;
       }
     
-      var upgradeUI = function(){
+      var upgradeUI = function(e){
         if(latest_ui_version){
           el('upgradeUI').style.display = 'block';
           el('upgradeUIContent').onclick = function(e){e.stopPropagation()};
           el('upgradeUI').onclick = function(){hideModal('upgradeUI')};
           document.body.onkeyup = function(e){ escEvent(e, 'upgradeUI')};
         }
+        e.preventDefault();
       }
     
       var setVersions = function(){
         var versionString = "Firmware version: " + mirobot_version + " | UI version: " + ui_version;
         if(latest_ui_version && latest_ui_version > ui_version){
-          versionString += ' <a href="#" onclick="upgradeUI();return false;">Upgrade</a>';
+          versionString += ' <a href="#">Upgrade</a>';
         }
         el('version').innerHTML = versionString;
+        document.querySelector('#version a') && document.querySelector('#version a').addEventListener('click', upgradeUI);
       }
 
       var getVersion = function(){
@@ -520,33 +523,26 @@ CONFIG_VAR(wifi_mode, CFG_WMODE);
             conn.removeClass('connected');
           }
         }
-      
-        checkUIVersion();
-      
         mirobot.addListener(mirobotHandler);
       }
-/*
-      LoadScripts(['snack.js', 'mirobot.js', 'builder.js', 'snack.sortableList.js'], '/', function(){
-        
-      });
-*/
+
       $ = snack.wrap;
       initProgram();
       updateWirelessConfig(wirelessConfig);
       el('wifiConnState').onclick = configureWifi;
       setVersions();
+
+      if(hashConfig['l'] !== 'true'){
+        // Useful in the future for adding functionality without upgrades
+        loadScript('remote.js', undefined, remote_base, function(){
+          has_remote_conn = true;
+          checkUIVersion()
+        });
+      }
     }
 
     if(typeof(WebSocket) !== "undefined"){
-      if(hashConfig['l'] === 'true'){
-        localApp();
-      }else{
-        window.onload = function(){
-          loadScript('test.js', undefined, remote_base, function(){
-            loadScript('bootstrap.js', undefined, remote_base, function(){}, localApp);
-          }, localApp);
-        }
-      }
+      window.addEventListener('load', localApp);
     }else{
       document.getElementById('wsMsg').style.display = 'block';
     }

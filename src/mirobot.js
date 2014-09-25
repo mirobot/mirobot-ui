@@ -79,10 +79,10 @@ Mirobot.prototype = {
   
   stop: function(cb){
     var self = this;
-    this.send({cmd:'stop'}, function(state, recursion){
+    this.send({cmd:'stop'}, function(state, msg, recursion){
       if(state === 'complete' && !recursion){
         for(var i in self.cbs){
-          self.cbs[i]('complete', true);
+          self.cbs[i]('complete', undefined, true);
         }
         self.robot_state = 'idle';
         self.msg_stack = [];

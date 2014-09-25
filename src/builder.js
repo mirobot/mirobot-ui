@@ -115,7 +115,6 @@ Builder.prototype = {
   },
   storeProgram: function(){
     if(this.supportsLocalStorage()){
-      console.log('storing');
       var prog = new FnInstance(null, null, null);
       this.generate($('.editor ol.program')[0], prog);
       localStorage['mirobot.currentProgram'] = JSON.stringify(prog.toObject());
@@ -141,7 +140,6 @@ Builder.prototype = {
           if(fns[i].args.hasOwnProperty(arg)){
             var input = newEl.querySelector("[name='" + arg + "']");
             input.value = fns[i].args[arg];
-            console.log(input);
           }
         }
         self.checkForChanges(newEl);
