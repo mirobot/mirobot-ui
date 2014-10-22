@@ -29,10 +29,10 @@ Uploading the binary
 --------------------
 Join the mirobot network and load the UI by visiting http://10.10.100.254/
 
-If you're on a Windows machine you can visit http://10.10.100.254/iweb.html and then upload the new bin file (make sure you choose the correct part of the form, don't upload it instead of the firmware!)
+If you're on a Windows machine you can visit http://10.10.100.254/iweb.html and then upload the new bin file (make sure you choose the correct part of the form: *Upgrade customized webpage*, not *Upgrade firmware*!)
 
 If you're on a mac this doesn't currently work, so you need to use the uploader script in bin:
 ```
 ./bin/upgrade.sh
 ```
-You should see a message saying the upgrade was successful and then the module should restart and after about 20 - 30 seconds you should be able to visit http://10.01.100.254 to see your new code. If it doesn't work first time, just keep  trying, it can be a little glitchy.
+You should see a message saying the upgrade was successful and then the module should restart and after about 20 - 30 seconds you should be able to visit http://10.10.100.254 to see your new code. If it doesn't work first time, just keep  trying, it can be a little glitchy.
