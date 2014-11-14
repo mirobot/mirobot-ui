@@ -23,7 +23,9 @@ Mirobot.prototype = {
   setConnectedState: function(state){
     var self = this;
     self.connected = state;
-    self.broadcast(state ? 'connected' : 'disconnected');
+    setTimeout(function(){
+      self.broadcast(self.connected ? 'connected' : 'disconnected');
+    }, 500);
     // Try to auto reconnect if disconnected
     if(state){
       if(self.reconnectTimer){
@@ -32,6 +34,7 @@ Mirobot.prototype = {
       }
     }else{
       if(!self.reconnectTimer){
+        self.connect();
         self.reconnectTimer = setInterval(function(){
           self.connect();
         }, 1000);
