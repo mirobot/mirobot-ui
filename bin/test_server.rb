@@ -24,13 +24,14 @@ t1 = Thread.new do
         parsed = JSON.parse(msg)
         p parsed
         puts "Recieved message: #{msg}"
-        if parsed['cmd'] && ['ping', 'pause', 'resume', 'stop', 'version'].include?(parsed['cmd'])
+        if parsed['cmd'] && ['ping', 'pause', 'resume', 'stop', 'version', 'beep'].include?(parsed['cmd'])
           response = {'status' => 'complete'}
           response['id'] = parsed['id'] if parsed['id']
           response['msg'] = '20140629' if parsed['cmd'] == 'version'
           ws.send JSON.generate(response)
+          $current_cmd = nil;
         elsif $current_cmd.nil?
-          if parsed['cmd'] && ['forward', 'back', 'right', 'left', 'penup', 'pendown', 'ping'].include?(parsed['cmd'])
+          if parsed['cmd'] && ['forward', 'back', 'right', 'left', 'penup', 'pendown', 'ping', 'collide', 'follow'].include?(parsed['cmd'])
             $current_cmd = parsed
             response = {'status' => 'accepted'}
             response['id'] = parsed['id'] if parsed['id']
@@ -42,11 +43,13 @@ t1 = Thread.new do
                 delay = parsed['arg'].to_i / 20
               end
             end
-            EM.add_timer(delay) do
-              response = {'status' => 'complete'}
-              response['id'] = $current_cmd['id'] if $current_cmd['id']
-              ws.send JSON.generate(response)
-              $current_cmd = nil
+            unless ['collide', 'follow'].include?(parsed['cmd'])
+              EM.add_timer(delay) do
+                response = {'status' => 'complete'}
+                response['id'] = $current_cmd['id'] if $current_cmd['id']
+                ws.send JSON.generate(response)
+                $current_cmd = nil
+              end
             end
           else
             response = {'status' => 'error', 'msg' => "Command not recognised"}

@@ -66,6 +66,8 @@ var Builder = function(el, mirobot){
   this.init();
   this.fns = {};
   this.paused = false;
+  this.following = false;
+  this.colliding = false;
 
   snack.each(this.functions, function(f){
     self.fns[f.name] = f;
@@ -97,10 +99,14 @@ Builder.prototype = {
     this.pause = $('.editor .pause');
     this.stop = $('.editor .stop');
     this.clear = $('.editor .clear');
-    this.runner.attach('click', function(e){self.runProgram(e)});
-    this.pause.attach('click', function(e){self.pauseProgram(e)});
-    this.stop.attach('click', function(e){self.stopProgram(e)});
-    this.clear.attach('click', function(e){self.clearProgram(e)});
+    this.follow = $('.editor #follow');
+    this.collide = $('.editor #collide');
+    this.runner.attach('click', function(e){self.runProgram()});
+    this.pause.attach('click', function(e){self.pauseProgram()});
+    this.stop.attach('click', function(e){self.stopProgram()});
+    this.clear.attach('click', function(e){self.clearProgram()});
+    this.follow.attach('click', function(e){self.followClick()});
+    this.collide.attach('click', function(e){self.collideClick()});
     this.mirobot.addListener(function(state){ self.mirobotHandler(state) });
 
     this.addFunctions();
@@ -235,6 +241,7 @@ Builder.prototype = {
     });
   },
   runProgram: function(){
+    if(this.following || this.colliding){ return; }
     if(this.paused){
       this.mirobot.resume();
     }else{
@@ -254,12 +261,16 @@ Builder.prototype = {
       self.pause.hide();
     });
   },
-  stopProgram: function(){
+  stopProgram: function(cb){
     var self = this;
     this.mirobot.stop(function(){
       self.runner.show();
       self.pause.hide();
       self.paused = false;
+      self.colliding = false;
+      self.following = false;
+      self.updateState();
+      cb && cb();
     });
   },
   clearProgram: function(){
@@ -267,6 +278,37 @@ Builder.prototype = {
     $('.editor ol.program li.function').remove();
     this.storeProgram();
     this.showHints();
+  },
+  updateState: function(){
+    this.follow[0].innerHTML = this.following ? "&#9724; Stop Following Lines" : "&#9654; Start Following Lines";
+    this.collide[0].innerHTML = this.colliding ? "&#9724; Stop Collision Detection" : "&#9654; Start Collision Detection";
+    this.runner[0].className = (this.colliding || this.following) ? "run disabled" : "run";
+  },
+  followClick: function(e){
+    var self = this;
+    if(self.following){
+      self.stopProgram();
+    }else{
+      self.stopProgram(function(){
+        self.mirobot.follow(function(){
+          self.following = true;
+          self.updateState();
+        });
+      });
+    }
+  },
+  collideClick: function(e){
+    var self = this;
+    if(this.colliding){
+      this.stopProgram();
+    }else{
+      this.stopProgram(function(){
+        self.mirobot.collide(function(){
+          self.colliding = true;
+          self.updateState();
+        });
+      });
+    }
   },
   generate: function(el, parent){
     var self = this;
@@ -346,6 +388,18 @@ Builder.prototype = {
           }
         }
       }
+    },
+    {
+      name:'beep',
+      type:'child',
+      content:[
+        'Beep for',
+        {input:'number', name:'duration', default:0.5},
+        'seconds'
+      ],
+      run: function(node, mirobot, cb){
+        mirobot.beep(node.args().duration * 1000);
+      }
     }
   ]
 }
@@ -354,6 +408,7 @@ Builder.prototype = {
 
 Builder.prototype.mainUI = '<div class="left container"><h2>Toolbox</h2>\
 <ol class="functionList"></ol>\
+<div class="extra"><button id="follow">&#9654; Start Following Lines</button><button id="collide">&#9654; Start Collision Detection</button></div>\
 </div>\
 <div class="right container"><h2>Program</h2>\
 <div class="programWrapper"><ol class="program" id="program">\

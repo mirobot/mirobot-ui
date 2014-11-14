@@ -38,12 +38,12 @@
     }
     .editor .left{
       width:300px;
-      background:#EEE;
-      border:1px solid #888;
       float: left;
     }
     .editor .functionList{
       vertical-align:top;
+      background:#EEE;
+      border:1px solid #888;
       padding:10px;
     }
     .editor input[type='number']{
@@ -70,7 +70,7 @@
     .editor .programWrapper{
       overflow:auto;
     }
-    .editor button{
+    .editor .buttons button{
       color:#FFF;
       font-size:1.5em;
       padding:5px;
@@ -82,35 +82,41 @@
       margin:0;
       background:#BBB;
     }
-    .editor button:focus{
+    .editor .buttons button:focus{
       outline-width: 0;
     }
-    .editor .run{
+    .editor .buttons .run{
       background-color:#33D121;
     }
-    .editor .run:hover{
+    .editor .buttons .run:hover{
       background-color:#2CAD1D;
     }
-    .editor .run:active{
+    .editor .buttons .run:active{
       background-color:#218216;
     }
-    .editor .stop{
+    .editor .buttons .stop{
       background-color:#888;
     }
-    .editor .stop:hover{
+    .editor .buttons .stop:hover{
       background-color:#444;
     }
-    .editor .stop:active{
+    .editor .buttons .stop:active{
       background-color:#000;
     }
-    .editor .clear{
+    .editor .buttons .clear{
       background-color:#AAA;
     }
-    .editor .clear:hover{
+    .editor .buttons .clear:hover{
       background-color:#777;
     }
-    .editor .clear:active{
+    .editor .buttons .clear:active{
       background-color:#444;
+    }
+    .editor .buttons .disabled{
+      background-color:#BBB;
+    }
+    .editor .buttons .disabled:hover{
+      background-color:#BBB;
     }
     .editor .program{
       overflow:hidden;
@@ -237,6 +243,28 @@
       position:absolute;
       bottom:5px;
       right:10px;
+    }
+    .editor .extra{
+      padding:10px;
+    }
+    .editor .extra button{
+      display:block;
+      margin:0 0 10px 0;
+      background: #FFF;
+      border: 1px #888 solid;
+      padding:5px;
+      min-width:160px;
+      text-align:center;
+      min-height:3em;
+    }
+    .editor .extra button:active{
+      background: #DDD;
+    }
+    .editor .extra button:hover{
+      background: #EEE;
+    }
+    .editor .extra button:focus{
+      outline: 0;
     }
   </style>
 </head>

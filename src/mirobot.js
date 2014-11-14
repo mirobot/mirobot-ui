@@ -73,10 +73,18 @@ Mirobot.prototype = {
     this.send({cmd: 'pendown'}, cb);
   },
 
-  ping: function(cb){
-    this.send({cmd: 'ping'}, cb);
+  beep: function(duration, cb){
+    this.send({cmd: 'beep', arg: duration}, cb);
   },
-  
+
+  collide: function(cb){
+    this.send({cmd: 'collide'}, cb);
+  },
+
+  follow: function(cb){
+    this.send({cmd: 'follow'}, cb);
+  },
+
   stop: function(cb){
     var self = this;
     this.send({cmd:'stop'}, function(state, msg, recursion){
