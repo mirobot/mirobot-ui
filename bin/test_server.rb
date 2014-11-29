@@ -46,7 +46,7 @@ t1 = Thread.new do
             unless ['collide', 'follow'].include?(parsed['cmd'])
               EM.add_timer(delay) do
                 response = {'status' => 'complete'}
-                response['id'] = $current_cmd['id'] if $current_cmd['id']
+                response['id'] = $current_cmd['id'] if $current_cmd && $current_cmd['id']
                 ws.send JSON.generate(response)
                 $current_cmd = nil
               end
