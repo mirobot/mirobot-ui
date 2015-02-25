@@ -4,6 +4,15 @@
     body {
       background-color: #fff;
       font-family: sans-serif;
+      font-size:90%;
+    }
+    label{
+      display:block;
+      margin:10px 0 3px;
+    }
+    input.save{
+      display:block;
+      margin:10px 0 0;
     }
   </style>
 	<script type="text/javascript">
@@ -32,25 +41,6 @@ CONFIG_VAR(wifi_mode, CFG_WMODE);
     var wan_setting_dns = '194.168.0.72';
     var wifi_mode = 'APSTA';
   }
-
-	var wpa_key_show= "0";
-	function wpa_key_check_changed(){
-		if (wpa_key_show == "1"){
-			if (window.ActiveXObject){
-				document.all('sta_setting_wpakey').outerHTML="<input type=password maxlength=64 size=32 name=sta_setting_wpakey id=wep_key_text class='text' value='"+document.all('sta_setting_wpakey').value+"'>";
-			}else{
-				document.getElementById('wpa_key_text').type = "password";
-			}
-			wpa_key_show="0";
-		}else{
-			if (window.ActiveXObject){
-				document.all('sta_setting_wpakey').outerHTML="<input type=text maxlength=64 size=32 name=sta_setting_wpakey id=wep_key_text class='text' value='"+document.all('sta_setting_wpakey').value+"'>";
-			}else{
-				document.getElementById('wpa_key_text').type = "text";
-			}
-			wpa_key_show="1";
-		}
-	}
 	
 	function enableCon(c,v){
 		var con = document.getElementById(c);
@@ -166,7 +156,7 @@ CONFIG_VAR(wifi_mode, CFG_WMODE);
 			sta_setting_encry= gg_encry;
 		}
 		sta_setting_set();
-		if (sta_setting_encry!= "NONE"){
+		if (sta_setting_encry != "NONE"){
 			alert('The password is empty!');
 			document.form_sta_setting.sta_setting_wpakey.focus();
 			document.form_sta_setting.sta_setting_wpakey.select();
@@ -303,8 +293,8 @@ CONFIG_VAR(wifi_mode, CFG_WMODE);
   }
   
   function search(){
-    hide("div_3_1");
-    show("div_3_2");
+    hide("settingsForm");
+    show("searchList");
     document.getElementById("sta_search_iframe").src= "site_survey.html";
     document.getElementById("refresh").disabled=true;
     setTimeout("eb()",3000);
@@ -314,106 +304,78 @@ CONFIG_VAR(wifi_mode, CFG_WMODE);
     document.getElementById("refresh").disabled=false;
   }
   
-	</script>
+  </script>
 </head>
-<body class="in_body" onload="init_sta_setting()">
-    <div class="div_c">
-        <form name= "form_sta_setting" method="post" action="do_cmd_en.html">
-		<input type="hidden" name="sta_setting_encry">
-		<input type="hidden" name="wifi_mode" value="APSTA">
-		<input type="hidden" name="sta_setting_auth">
-        <div id="div_3_1">
-            <div class="label">Network Name</div>
-            <div class="fw"><input name="sta_setting_ssid" type="text" />
-			<input type="button" class="btn l4" value="Scan" onclick="search()"/>
-            </div>
-            <div class="cl"></div>
-            <div class="line"></div>
-            <div class="label">Encryption Method</div>
-            <div class="fw"><select name="sta_setting_auth_sel" onchange="auth_change()">
-				<option value="OPENNONE">Disable</option>
-				<option value="OPENWEP">OPENWEP</option>
-				<option value="SHAREDWEP">SHAREDWEP</option>
-				<option value="WPAPSK">WPAPSK</option>
-				<option value="WPA2PSK">WPA2PSK</option>
-				</select>
-			</div>
-            <div class="cl"></div>
-            <div class="line"></div>
-			<div id="wpa_enc" style="visibility:hidden;display:none">
-				<div class="label">Encryption Algorithm</div>
-				<div class="fw"><select name="sta_setting_encry_sel">
-				<option selected="selected" value="TKIP">TKIP</option>
-				<option value="AES">AES</option>
-				<option value="TKIPAES">TKIPAES</option>
-				</select>
-				</div>
-				<div class="cl"></div>
-				<div class="line"></div>
-			</div>
-			<div id="wpa_type" style="visibility:hidden;display:none">
-				<div class="label">Encryption Type</div>
-				<div class="fw"><select name="sta_setting_type_sel">
-				<option selected="selected" value="ASCII">ASCII</option>
-				<option value="HEX">HEX</option>
-				</select>
-				</div>
-				<div class="cl"></div>
-				<div class="line"></div>
-			</div>
-			<div id="sta_key" style="visibility:hidden;display:none">
-				<div class="label">Password</div>
-				<div class="fw">
-				<input name="sta_setting_wpakey" type="password" class="text" id="wpa_key_text">
-				<div>
-				<input onclick="wpa_key_check_changed()" type="checkbox"/>
-				Show passwords
-				</div>
-				</div>
-				<div class="cl"></div>
-				<div class="line"></div>
-			</div>
-            <div class="label">Obtain an IP address automatically</div>
-            <div class="fw">
-			<select name="wan_setting_dhcp" id="div_3_dhcp" onchange="dhcp(2)">
-			<option value="DHCP">Enable</option>
-			<option value="STATIC">Disable</option>
-			</select>
-			</div>
-            <div class="cl"></div>
-            <div class="line"></div>
-            <div class="label">IP Address</div>
-            <div class="fw"><input name="wan_setting_ip" id="div_3_ip" type="text" class="text"></div>
-            <div class="cl"></div>
-            <div class="line"></div>
-            <div class="label">Subnet Mask</div>
-            <div class="fw"><input name="wan_setting_msk" id="div_3_sub" type="text" class="text"></div>
-            <div class="cl"></div>
-            <div class="line"></div>
-            <div class="label">Gateway Address</div>
-            <div class="fw"><input name="wan_setting_gw" id="div_3_gate" type="text" class="text"></div>
-            <div class="cl"></div>
-            <div class="line"></div>
-            <div class="label">DNS Server Address</div>
-            <div class="fw"><input name="wan_setting_dns" id="div_3_dns" type="text" class="text"></div>
-            <div class="cl"></div>
-            <div class="line"></div>
-            <div>
-                <input onclick="sta_form_apply()" type="button" class="btn" value="Save"/>
-            </div>
+<body onload="init_sta_setting()">
+    <form name= "form_sta_setting" method="post" action="do_cmd_en.html">
+    <input type="hidden" name="sta_setting_encry">
+    <input type="hidden" name="wifi_mode" value="APSTA">
+    <input type="hidden" name="sta_setting_auth">
+
+    <div id="settingsForm">
+      <div id="messages" style="display:hidden"></div>
+      <label for="sta_setting_ssid">Network Name</label>
+      <input name="sta_setting_ssid" type="text" />
+      <input type="button" class="btn l4" value="Scan" onclick="search()"/>
+
+      <label for="sta_setting_auth_sel">Encryption Method</label>
+      <select name="sta_setting_auth_sel" onchange="auth_change()">
+        <option value="OPENNONE">Disable</option>
+        <option value="OPENWEP">OPENWEP</option>
+        <option value="SHAREDWEP">SHAREDWEP</option>
+        <option value="WPAPSK">WPAPSK</option>
+        <option value="WPA2PSK">WPA2PSK</option>
+      </select>
+
+      <div id="wpa_enc" style="visibility:hidden;display:none">
+        <label for="sta_setting_encry_sel">Encryption Algorithm</label>
+        <select name="sta_setting_encry_sel">
+          <option selected="selected" value="TKIP">TKIP</option>
+          <option value="AES">AES</option>
+          <option value="TKIPAES">TKIPAES</option>
+        </select>
+      </div>
+
+        <div id="wpa_type" style="visibility:hidden;display:none">
+          <label for="sta_setting_type_sel">Encryption Type</label>
+          <select name="sta_setting_type_sel">
+            <option selected="selected" value="ASCII">ASCII</option>
+            <option value="HEX">HEX</option>
+          </select>
         </div>
+
+        <div id="sta_key" style="visibility:hidden;display:none">
+          <label for="sta_setting_wpakey">Password</label>
+          <input name="sta_setting_wpakey" type="password" class="text" id="wpa_key_text">
+        </div>
+
+        <label for="wan_setting_dhcp">Obtain an IP address automatically</label>
+        <select name="wan_setting_dhcp" id="div_3_dhcp" onchange="dhcp(2)">
+          <option value="DHCP">Enable</option>
+          <option value="STATIC">Disable</option>
+        </select>
+
+        <label for="wan_setting_ip">IP Address</label>
+        <input name="wan_setting_ip" id="div_3_ip" type="text" class="text">
+
+        <label for="wan_setting_msk">Subnet Mask</label>
+        <input name="wan_setting_msk" id="div_3_sub" type="text" class="text">
+
+        <label for="wan_setting_gw">Gateway Address</label>
+        <input name="wan_setting_gw" id="div_3_gate" type="text" class="text">
+
+        <label for="wan_setting_dns">DNS Server Address</label>
+        <input name="wan_setting_dns" id="div_3_dns" type="text" class="text">
+
+        <input onclick="sta_form_apply()" type="button" class="save" value="Save Settings"/>
+      </div>
 		</form>
-        <div style="display:none" id="div_3_2">
-            <font class="white s15 b">Please select your current wireless network</font>
-            <div class="sp_30"></div>
-            <div>
-				<iframe frameborder="0" style="border:none;width:100%;height:300px; border-spacing:0px;" id="sta_search_iframe"></iframe>
-            </div>
-            <div class="sp_20"></div>
-            <div class="lab_4 tr">
-			<input type="button" class="btn r10" value="OK" onclick="hide('div_3_2');show('div_3_1');to_server(gg_ssid, gg_bssid, gg_auth, gg_encry);"/>
-			<input onclick="search()" type="button" class="btn" value="Refresh" id="refresh"/></div>
-        </div>
+
+    <div style="display:none" id="searchList">
+      <p>Please select your current wireless network</p>
+      <iframe frameborder="0" style="border:none;width:100%;height:300px; border-spacing:0px;" id="sta_search_iframe"></iframe>
+			<input type="button" class="btn r10" value="OK" onclick="hide('searchList');show('settingsForm');to_server(gg_ssid, gg_bssid, gg_auth, gg_encry);"/>
+			<input onclick="search()" type="button" class="btn" value="Refresh" id="refresh"/>
     </div>
 </body>
 </html>
