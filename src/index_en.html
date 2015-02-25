@@ -288,20 +288,6 @@
       <p>Any recent version of the major browsers should work without problems. If you're not sure what to use, <a href="https://www.google.com/chrome/browser/">Google Chrome</a> is a good start.</p>
     </div>
   </div>
-  <div id="upgradeUI" class="modal" style="display:none">
-    <div class="content" id="upgradeUIContent">
-      <h3>Upgrade the Mirobot UI</h3>
-      <p>First download the latest file to your hard drive:</p>
-      <button onclick="downloadLatestUIVersion();return false">Download latest version</button>
-      <p>Then select it here:</p>
-      <form name= "form_sw_upload" method="post" action="data_success.html" enctype="multipart/form-data">
-        <input type="hidden" name="CMD" value="WEB_UPLOAD">
-        <input name="files" size="40" maxlength="256" type="file" value="" />
-        <p>Finally, click to upgrade</p>
-        <input type="submit" value="Upgrade Now" />
-      </form>
-    </div>
-  </div>
   <div id="code"></div>
   <script>
     var wirelessConfig = function(){
@@ -426,7 +412,6 @@ CONFIG_VAR(wifi_mode, CFG_WMODE);
       has_remote_conn = false;
       var mirobot;
       var latest_ui_version = undefined;
-      var latest_ui_file = undefined;
 
       var mirobot_version = 'unknown';
 
@@ -469,35 +454,12 @@ CONFIG_VAR(wifi_mode, CFG_WMODE);
         document.body.onkeyup = function(e){ escEvent(e, 'wifiConfig')};
       }
     
-      var downloadLatestUIVersion = function(){
-          var hiddenIFrameID = 'hiddenDownloader',
-              iframe = document.getElementById(hiddenIFrameID);
-          if (iframe === null) {
-              iframe = document.createElement('iframe');
-              iframe.id = hiddenIFrameID;
-              iframe.style.display = 'none';
-              document.body.appendChild(iframe);
-          }
-          iframe.src = latest_ui_file;
-      }
-    
-      var upgradeUI = function(e){
-        if(latest_ui_version){
-          el('upgradeUI').style.display = 'block';
-          el('upgradeUIContent').onclick = function(e){e.stopPropagation()};
-          el('upgradeUI').onclick = function(){hideModal('upgradeUI')};
-          document.body.onkeyup = function(e){ escEvent(e, 'upgradeUI')};
-        }
-        e.preventDefault();
-      }
-    
       var setVersions = function(){
         var versionString = "Firmware version: " + mirobot_version + " | UI version: " + ui_version;
         if(latest_ui_version && latest_ui_version > ui_version){
-          versionString += ' <a href="#">Upgrade</a>';
+          versionString += ' <a href="http://mirobot.io/build/firmware_update/" target="_blank">Upgrade</a>';
         }
         el('version').innerHTML = versionString;
-        document.querySelector('#version a') && document.querySelector('#version a').addEventListener('click', upgradeUI);
       }
 
       var getVersion = function(){
@@ -516,12 +478,10 @@ CONFIG_VAR(wifi_mode, CFG_WMODE);
           xhr.onreadystatechange = function(){
             if(xhr.readyState === 4 && xhr.status === 200){
               var res = JSON.parse(xhr.response);
-              latest_ui_version = res[0].tag_name;
-              if(res[0].assets.length > 0){
-                for(var i in res[0].assets){
-                  if(res[0].assets[i].name === 'mirobot.bin'){
-                    latest_ui_file = res[0].assets[i].browser_download_url;
-                  }
+              for(var i = 0; i< res.length; i++){
+                if(!res[i].prerelease){
+                  latest_ui_version = res[i].tag_name;
+                  break;
                 }
               }
               setVersions();
