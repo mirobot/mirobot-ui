@@ -14,6 +14,14 @@
       display:block;
       margin:10px 0 0;
     }
+    p.extra{
+      margin-top:20px;
+      font-size:80%;
+      color: #999;
+    }
+    p.extra a{
+      color: #999;
+    }
   </style>
 	<script type="text/javascript">
 /*<%
@@ -368,6 +376,8 @@ CONFIG_VAR(wifi_mode, CFG_WMODE);
         <input name="wan_setting_dns" id="div_3_dns" type="text" class="text">
 
         <input onclick="sta_form_apply()" type="button" class="save" value="Save Settings"/>
+        <p class="extra">Advanced settings:
+        <a href="select_en.html">Access Point Enable</a> | <a href="wirepoint_en.html">Access Point Settings</a></p>
       </div>
 		</form>
 

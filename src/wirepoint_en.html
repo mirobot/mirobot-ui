@@ -1,0 +1,196 @@
+<html>
+<head>
+<script type="text/javascript">
+/*<%
+CONFIG_VAR(ap_setting_net_mode, CFG_WAMODE);
+CONFIG_VAR(ap_setting_ssid, CFG_WASSID);
+CONFIG_VAR(ap_setting_mac, CFG_WAMAC);
+CONFIG_VAR(ap_setting_freq, CFG_WACHL);
+CONFIG_VAR(ap_setting_auth, CFG_WAAUTH);
+CONFIG_VAR(ap_setting_encryp,CFG_WAENC);
+CONFIG_VAR(ap_setting_wpakey,CFG_WAKEY);
+%>*/
+
+if(typeof ap_setting_net_mode === 'undefined'){
+  ap_setting_net_mode = '11bg';
+  ap_setting_ssid = 'mirobot';
+  ap_setting_mac = '10:20:30:40:50:60';
+  ap_setting_freq = '5';
+  ap_setting_auth = 'OPEN';
+  ap_setting_encryp = 'NONE';
+  ap_setting_wpakey = '';
+}
+
+function hide(v){
+  var c = document.getElementById(v);
+  if(c != null){
+    c.style.visibility = "hidden";
+    c.style.display = "none";
+  }
+}
+function show(v){
+  var c = document.getElementById(v);
+  if(c != null){
+    c.style.visibility = "visible";
+    c.style.display = "";
+  }
+}
+function auth_change(){
+  var v=document.form_ap_secu_setting.ap_setting_auth_sel.options.selectedIndex;
+  if (v== 0){
+    hide("ap_key");
+  }else{
+    show("ap_key");
+  }
+}	
+function init_ap_setting(){
+  var f=document.form_ap_setting;
+  if (ap_setting_net_mode == "11b"){
+    f.ap_setting_net_mode_sel.options.selectedIndex = 0;
+  }else if (ap_setting_net_mode == "11bg"){
+    f.ap_setting_net_mode_sel.options.selectedIndex = 1;
+  }else{
+    f.ap_setting_net_mode_sel.options.selectedIndex = 2;
+  }
+  f.ap_setting_ssid.value=ap_setting_ssid;
+  document.getElementById("ap_setting_mac").innerHTML= ap_setting_mac;
+  f.ap_setting_freq.value= ap_setting_freq;
+}
+
+function init_ap_seu(){
+  var f=document.form_ap_secu_setting;
+  if ((ap_setting_auth== "OPEN")&&(ap_setting_encryp == "NONE")){
+    f.ap_setting_auth_sel.options.selectedIndex = 0;
+  }else{
+    f.ap_setting_auth_sel.options.selectedIndex = 1;
+  }
+  show("wpa");
+
+  f.ap_setting_wpakey.value= ap_setting_wpakey;		
+  auth_change();				
+}
+
+function ap_setting_apply(){
+  var f=document.form_ap_setting;
+  if (f.ap_setting_net_mode_sel.options.selectedIndex== 0){
+    f.ap_setting_net_mode.value= "11b";
+  }else if (f.ap_setting_net_mode_sel.options.selectedIndex== 1){
+    f.ap_setting_net_mode.value= "11bg";
+  }else{
+    f.ap_setting_net_mode.value= "11bgn";
+  }
+  if(f.ap_setting_ssid.value==""){
+    alert("SSID is empty!");
+    return;
+  }
+  if(f.ap_setting_ssid.value.length>32){
+    alert("Please enter 1-32 characters!");
+    return;
+  }
+  f.submit();
+}
+
+function ap_secu_setting_apply(){
+  var f=document.form_ap_secu_setting;
+  if (f.ap_setting_auth_sel.options.selectedIndex== 0){
+    f.ap_setting_auth.value= "OPEN";
+    f.ap_setting_encryp.value= "NONE";
+  }else{
+    f.ap_setting_auth.value= "WPA2PSK";
+    f.ap_setting_encryp.value= "AES";
+  }
+  if((f.ap_setting_auth_sel.options.selectedIndex!=0)&&(f.ap_setting_wpakey.value == "")){
+    alert("The password is empty!");
+    return;
+  }
+  if((f.ap_setting_auth_sel.options.selectedIndex!=0)&&((f.ap_setting_wpakey.value.length <8)||(f.ap_setting_wpakey.value.length >64))){
+    alert("Please enter 8-63 characters!");
+    return;
+  }
+  f.submit();
+}
+</script>
+<style>
+body {
+  background-color: #fff;
+  font-family: sans-serif;
+  font-size:90%;
+}
+label{
+  display:block;
+  margin:10px 0 3px;
+}
+input.save{
+  display:block;
+  margin:10px 0 0;
+}
+p.extra{
+  margin-top:20px;
+  font-size:80%;
+  color: #999;
+}
+p.extra a{
+  color: #999;
+}
+hr{
+  height:5px;
+  background:#DDD;
+  border:none;
+}
+</style>
+</head>
+<body onload="init_ap_setting();init_ap_seu()">
+  <p class="extra"><a href="wireless_en.html">&#8592; Back</a></p>
+  <form name= "form_ap_setting" method="post" action="do_cmd_en.html">
+    <input type="hidden" name="ap_setting_net_mode">
+    <label for="ap_setting_net_mode_sel">Network Mode</label>
+    <select name="ap_setting_net_mode_sel">
+      <option value="0">11b </option>
+      <option value="1">11bg </option>
+      <option value="2">11bgn </option>
+    </select>
+
+    <label for="ap_setting_ssid">Network Name(SSID)</label>
+    <input type="text" value="" name="ap_setting_ssid">
+
+    <label for="ap_setting_mac">Module MAC Address</label>
+    <span id="ap_setting_mac"></span>
+
+    <label for="ap_setting_freq">Select Channel</label>
+    <select name="ap_setting_freq">
+      <option value="0" selected="">Auto-select</option>
+      <option value="1">2412MHz(channel 1)</option>
+      <option value="2">2417MHz(channel 2)</option>
+      <option value="3">2422MHz(channel 3)</option>
+      <option value="4">2427MHz(channel 4)</option>
+      <option value="5">2432MHz(channel 5)</option>
+      <option value="6">2437MHz(channel 6)</option>
+      <option value="7">2442MHz(channel 7)</option>
+      <option value="8">2447MHz(channel 8)</option>
+      <option value="9">2452MHz(channel 9)</option>
+      <option value="10">2457MHz(channel 10)</option>
+      <option value="11">2462MHz(channel 11)</option>
+    </select>
+
+		<input type="button" class="save" value="Save" onclick="ap_setting_apply()"/>
+  </form>					
+  <hr />
+  <form name= "form_ap_secu_setting" method="post" action="do_cmd_en.html">
+    <input type="hidden" name="ap_setting_auth">
+    <input type="hidden" name="ap_setting_encryp">
+    
+    <label for="ap_setting_auth_sel">Encryption Mode</label>
+    <select onchange="auth_change()" name="ap_setting_auth_sel">
+      <option value="CLOSE" selected="">Disable</option>
+      <option value="WPA2PSK">WPA2-PSK</option></select>
+    </div>
+    
+    <div id="ap_key" style="visibility:hidden;display:none">
+      <label for="ap_setting_wpakey">Password</label>                    
+      <input name="ap_setting_wpakey" type="password" class="text" id="wpa_key_text">
+    </div>
+
+    <input onclick="ap_secu_setting_apply()" type="button" class="save" value="Save"/></div>
+  </form>
+</body>
+</html>

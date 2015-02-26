@@ -2,28 +2,54 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-  <style>
-    body {
-      background-color: #fff;
-      font-family: sans-serif;
-    }
-  </style>
 	<script type="text/javascript">
 /*<%
 CONFIG_VAR(wifi_mode, CFG_WMODE);
 %>*/
-	function init()
-	{
-	  window.setTimeout(function(){
-			document.form_wmode.submit();
-		}, 3000);
-	}
+
+if(typeof wifi_mode === 'undefined'){
+  wifi_mode = 'AP';
+}
+function init(){
+  document.form_wmode.wifi_mode.value=wifi_mode;
+}
 	</script>
+<style>
+body {
+  background-color: #fff;
+  font-family: sans-serif;
+  font-size:90%;
+}
+label{
+  display:block;
+  margin:10px 0 3px;
+}
+input.save{
+  display:block;
+  margin:10px 0 0;
+}
+p.extra{
+  margin-top:20px;
+  font-size:80%;
+  color: #999;
+}
+p.extra a{
+  color: #999;
+}
+</style>
 </head>
 <body onload="init()">
-		<form name= "form_wmode" method="post" action="do_cmd_en.html">
-      <input name="wifi_mode" value="APSTA" type="hidden">
-      <p>Enabling WiFi connections. Please wait 20 seconds for Mirobot to restart then try again.</p>
-		</form>
+  <p class="extra"><a href="wireless_en.html">&#8592; Back</a></p>
+  <form name= "form_wmode" method="post" action="do_cmd_en.html">
+    <label for="wifi_mode">Select Mode:</label>
+    <select name="wifi_mode">
+      <option value="APSTA">Access Point + Client Mode</option>
+      <option value="AP">Access Point Mode Only</option>
+      <option value="STA">Client Mode Only</option>
+    </select>
+    <input type="submit" class="save" value="Save"/>
+    <p><strong>Access Point Mode</strong> - means you can connect to the WiFi network that Mirobot sets up</p>
+    <p><strong>Client Mode</strong> - means Mirobot can be configured to join your existing WiFi network</p>
+  </form>
 </body>
 </html>
