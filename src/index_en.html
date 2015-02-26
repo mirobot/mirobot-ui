@@ -402,6 +402,16 @@ CONFIG_VAR(wifi_mode, CFG_WMODE);
       document.getElementsByTagName('head')[0].appendChild(script);
       window.setTimeout(noload, 3000);
     }
+
+    var el = function(id){
+      return document.getElementById(id);
+    }
+
+    var hideModal = function(modal){
+      el(modal).style.display = 'none';
+      // unbind the event
+      document.body.onkeyup = undefined;
+    }
     
     // In case console logging kills the browser
     if(typeof window.console === 'undefined'){ window.console = {log: function(){}}; }
@@ -414,10 +424,6 @@ CONFIG_VAR(wifi_mode, CFG_WMODE);
       var latest_ui_version = undefined;
 
       var mirobot_version = 'unknown';
-
-      var el = function(id){
-        return document.getElementById(id);
-      }
 
       updateWirelessConfig = function(config){
         wirelessConfig = config;
