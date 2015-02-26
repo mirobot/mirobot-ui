@@ -568,7 +568,7 @@ CONFIG_VAR(wifi_mode, CFG_WMODE);
       el('wifiConnState').onclick = configureWifi;
       setVersions();
 
-      if(hashConfig['l'] !== 'true'){
+      if(hashConfig['l'] !== 'true' && window.location.hostname != '10.10.100.254'){
         // Useful in the future for adding functionality without upgrades
         loadScript('remote.js', undefined, remote_base, function(){
           has_remote_conn = true;
