@@ -269,6 +269,15 @@
     .editor .extra button:focus{
       outline: 0;
     }
+    #configIframe{
+      border:none;
+      display:hidden;
+      position:absolute;
+      top:0;
+      left:0;
+      width:1px;
+      height:1px;
+    }
   </style>
 </head>
 <body>
@@ -435,10 +444,18 @@ CONFIG_VAR(wifi_mode, CFG_WMODE);
         if(wirelessConfig.wan_setting_ip === '0.0.0.0'){
           conn.innerHTML = '&#10007; Configure WiFi';
           conn.className = 'connState';
+          checkConfig(10000);
         }else{
           conn.innerHTML = '&#10003; Connected to WiFi (' + wirelessConfig.cover_sta_rssi + ')';
           conn.className = 'connState connected';
+          checkConfig(60000);
         }
+      }
+
+      window.updateWirelessConfigIframe = function(config){
+        var frame = el('configIframe')
+        if(frame) frame.parentNode.removeChild(frame);
+        updateWirelessConfig(config);
       }
 
       var escEvent = function(event, modal){
@@ -447,20 +464,14 @@ CONFIG_VAR(wifi_mode, CFG_WMODE);
           hideModal(modal);
         }
       }
-
-      var hideModal = function(modal){
-        el(modal).style.display = 'none';
-        // unbind the event
-        document.body.onkeyup = undefined;
-      }
     
       var configureWifi = function(e){
         e.preventDefault();
         el('wifiFrame').src = '/wireless_en.html';
         el('wifiConfig').style.display = 'block';
         el('wifiContent').onclick = function(e){e.stopPropagation()};
-        el('wifiConfig').onclick = function(){hideModal('wifiConfig')};
-        document.body.onkeyup = function(e){ escEvent(e, 'wifiConfig')};
+        el('wifiConfig').onclick = function(){hideModal('wifiConfig');checkConfig();};
+        document.body.onkeyup = function(e){ escEvent(e, 'wifiConfig');checkConfig();};
       }
     
       var setVersions = function(){
@@ -521,6 +532,20 @@ CONFIG_VAR(wifi_mode, CFG_WMODE);
           }
         }
         mirobot.addListener(mirobotHandler);
+      }
+
+      var checkConfig = function(delay){
+        var fn = function(){
+          var iframe = document.createElement('iframe');
+          iframe.src = "wireless_config_js.html";
+          iframe.id = 'configIframe';
+          document.body.appendChild(iframe);
+        }
+        if(delay){
+          window.setTimeout(fn, delay);
+        }else{
+          fn();
+        }
       }
 
       $ = snack.wrap;

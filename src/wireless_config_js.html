@@ -1,4 +1,7 @@
-updateWirelessConfig(function(){
+<html>
+<head>
+<script>
+window.top.updateWirelessConfigIframe(function(){
 /*<%
 CONFIG_VAR(sta_setting_ssid, CFG_WSSSID);
 CONFIG_VAR(sta_setting_auth, CFG_WSAUTH);
@@ -42,4 +45,7 @@ CONFIG_VAR(wifi_mode, CFG_WMODE);
     cover_sta_rssi: cover_sta_rssi,
     cover_ver: cover_ver
   }
-}())
+}());
+</script>
+</head>
+</html>
