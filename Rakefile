@@ -13,6 +13,7 @@ $ugly_options = {
 $input_dir = 'src'
 $output_dir = 'out'
 $dist_dir = 'dist'
+$ts = Time.now.strftime('%Y%m%d%H%M')
 
 def squish_file(input, options = {})
   # Don't squish site survey because this removes the tag we want
@@ -49,6 +50,7 @@ end
 
 task :flatten do
   puts "Building single mirobot html file"
+  puts "Timestamp: #{$ts}"
   Rake::Task["clean_output"].execute
   # Combine all of the html and javascript into one file
   # Find all of the html files to compress
@@ -74,7 +76,7 @@ task :dist do
 end
 
 def add_timestamp(input)
-  return input.gsub('{{timestamp}}', Time.now.strftime('%Y%m%d%H%M'))
+  return input.gsub('{{timestamp}}', $ts)
 end
 
 task :build do
