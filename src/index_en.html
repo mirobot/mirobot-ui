@@ -349,6 +349,7 @@ CONFIG_VAR(wifi_mode, CFG_WMODE);
     var remote_base = 'http://mirobot.io/assets/mirobot_js/';
     var ui_version = '{{timestamp}}';
     var hashConfig = {};
+    var mirobot;
     if(ui_version === ('{{time' + 'stamp}}')){
       ui_version = '20140723'; //So we can use the raw source for testing
     }
@@ -420,7 +421,6 @@ CONFIG_VAR(wifi_mode, CFG_WMODE);
       console.log('Loading local app');
 
       has_remote_conn = false;
-      var mirobot;
       var latest_ui_version = undefined;
 
       var mirobot_version = 'unknown';
