@@ -415,16 +415,6 @@ CONFIG_VAR(wifi_mode, CFG_WMODE);
       document.getElementsByTagName('head')[0].appendChild(script);
       window.setTimeout(noload, 3000);
     }
-
-    var el = function(id){
-      return document.getElementById(id);
-    }
-
-    var hideModal = function(modal){
-      el(modal).style.display = 'none';
-      // unbind the event
-      document.body.onkeyup = undefined;
-    }
     
     // In case console logging kills the browser
     if(typeof window.console === 'undefined'){ window.console = {log: function(){}}; }
@@ -434,8 +424,19 @@ CONFIG_VAR(wifi_mode, CFG_WMODE);
 
       has_remote_conn = false;
       var latest_ui_version = undefined;
+      var configTimeout;
 
       var mirobot_version = 'unknown';
+
+      var el = function(id){
+        return document.getElementById(id);
+      }
+
+      var hideModal = function(modal){
+        el(modal).style.display = 'none';
+        // unbind the event
+        document.body.onkeyup = undefined;
+      }
 
       updateWirelessConfig = function(config){
         wirelessConfig = config;
@@ -456,6 +457,11 @@ CONFIG_VAR(wifi_mode, CFG_WMODE);
         var frame = el('configIframe')
         if(frame) frame.parentNode.removeChild(frame);
         updateWirelessConfig(config);
+      }
+
+      window.hideWiFiConfig = function(){
+        hideModal('wifiConfig');
+        checkConfig(10000);
       }
 
       var escEvent = function(event, modal){
@@ -540,9 +546,17 @@ CONFIG_VAR(wifi_mode, CFG_WMODE);
           iframe.src = "wireless_config_js.html";
           iframe.id = 'configIframe';
           document.body.appendChild(iframe);
+          window.setTimeout(function(){
+            var frame = el('configIframe');
+            if(frame){
+              frame.parentNode.removeChild(frame);
+              checkConfig(10000);
+            }
+          }, 5000);
         }
         if(delay){
-          window.setTimeout(fn, delay);
+          if(configTimeout) window.clearTimeout(configTimeout);
+          configTimeout = window.setTimeout(fn, delay);
         }else{
           fn();
         }
