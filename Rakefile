@@ -127,7 +127,7 @@ task :create_bin do
   outfile = "#{$dist_dir}/mirobot.bin"
   headers = []
   file_contents = []
-  files = Dir.glob("#{$output_dir}/*")
+  files = Dir.glob("#{$output_dir}/*").sort_by {|f| File.basename f}
   files.each_with_index do |f, i|
     type = file_type(f)
     if type
